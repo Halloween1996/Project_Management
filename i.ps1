@@ -1,0 +1,36 @@
+if (-Not $Profile_Location) {Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression}
+$Show_Dir = $False
+if (-Not $dafile) {qu.ps1}
+Function readla ($param) {
+	[int]$n = 0
+	foreach($line in Get-Content -LiteralPath "$dafile" -tail $param) {
+		$n++
+		Write-Host "`r"
+		Write-Host "$n : "$line
+	}
+	Write-Host --------------------------------------------------------------------------------
+}
+Write-Host "1. Type Any Number to Review how many last messages that you have leaved to the profile. `n2. Type Anything to Leave your message to the profile.`n3. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded`n4. If you want also attach Current Diretory Name, set Variable 'Show_Dir' to 1 (true) "
+Write-Host --------------------------------------------------------------------------------
+Write-Host "Last 8 messages:"
+readla (8)
+Get-Content -LiteralPath "$dafile" -head 2|Write-Host
+Do
+{
+	if ($Show_Dir -eq $true) {
+		$CurDir = Split-Path -Path $PWD -leaf
+	}
+	$Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
+	Write-Host "                         [$Nowtime]`n"
+	$input=Read-Host
+	if ($input.StartsWith(':')) {
+		$temp_command = $input.substring(1)
+		Invoke-Expression $temp_command
+		continue
+	}
+    if ($input -match "^\d+$") {
+        readla ($input)
+		continue
+    }
+    Add-Content -LiteralPath "$dafile" -value "- $Nowtime $CurDir : $input"
+} until ($input -eq ":q")
