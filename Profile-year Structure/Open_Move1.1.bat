@@ -1,10 +1,10 @@
 @echo off
 @Title %date%
-set logging_Location=C:\Users\Maxel\SynologyDrive\Project_References\This-yeah\LT-DOC\Scan-Docs
-set Source_Location=C:\Users\Maxel\SynologyDrive\Project_References\This-yeah\LT-DOC\Scan-Docs
-set Final_Location=C:\Users\Maxel\SynologyDrive\Project_References\This-yeah\LT-DOC\Target
+set logging_Location=
+set Source_Location=
+set Final_Location=
+for /f "usebackq delims=" %%c in ("%~dp0\project_variable.ini") do set %%c
 set session_num=0
-echo Hello, Here is version 1.1 and today is %date%.
 echo log Directory: %logging_Location%
 if "%1"=="" goto open
 Set "Init_Path=True"
@@ -18,8 +18,8 @@ for /f "usebackq tokens=1,2 delims=-" %%a in ('%File_Name%') do (
     if "%%b"=="" Set Skip_This_File=True
     Set "sub_year=%%~b"
 )
-if "%sub_year%" leq "15" Set Skip_This_File=True
-if "%sub_year%" geq "35" Set Skip_This_File=True
+if %sub_year% leq 15 Set Skip_This_File=True
+if %sub_year% geq 35 Set Skip_This_File=True
 if "%Skip_This_File%"=="True" (
      echo It is not fit with standard, please rename [%sub_year%] and try again.
      pause
@@ -28,17 +28,15 @@ if "%Skip_This_File%"=="True" (
 if not exist "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%" (
     md "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%"
     echo %date%, %Time%,New Directory,%profile_Name%-%sub_year% >>%logging_Location%\move_History.csv
-    echo New Directory: "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%" >>%logging_Location%\move_History.log
 )
 echo %Final_location%\%profile_Name%\%profile_Name%-%sub_year%\%File_Name%%File_Extension%
 if not exist "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%\%File_Name%%File_Extension%" (
-	move %File_Path% "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%"
-	echo %date%, %Time%,%File_Name%,%Final_location%\%profile_Name%\%profile_Name%-%sub_year% >>%logging_Location%\move_History.csv
-	echo  - [%date% %time%] move %File_Name% to %Final_location%\%profile_Name%\%profile_Name%-%sub_year%>>%logging_Location%\move_History.log
+    move %File_Path% "%Final_location%\%profile_Name%\%profile_Name%-%sub_year%"
+    echo %date%, %Time%,%File_Name%,%Final_location%\%profile_Name%\%profile_Name%-%sub_year% >>%logging_Location%\move_History.csv
 ) else (
-	echo %Final_location%\%profile_Name%\%profile_Name%-%sub_year%\%File_Name%%File_Extension% is exist, please rename and try again.
-	ren "%File_Path%" "%File_Name%_%date:~-4%%date:~0,3%%File_Extension%"
-	pause
+    echo %Final_location%\%profile_Name%\%profile_Name%-%sub_year%\%File_Name%%File_Extension% is exist, please rename and try again.
+    ren "%File_Path%" "%File_Name%_%date:~-4%%date:~0,3%%File_Extension%"
+    pause
 )
 if "%Init_Path%"=="True" exit
 :open
@@ -48,13 +46,13 @@ Set "Source_Location_Numba="
 set /a session_num+=1
 echo.
 echo ----------[Session %session_num%] ---------- Time: %time%
-set /p profile_Name= Enter a Path to MOVE or a Keyword to OPEN folder         
-if "%profile_Name:~-1%"=="*" goto Global_Mode
+set /p profile_Name= Enter a Path to MOVE or a Keyword to OPEN folder        
 if exist "%profile_Name%" (
     set "File_Path=%profile_Name%"
     echo I think it is a path. moving file is executing.
     goto execution
 )
+if "%profile_Name:~-1%"=="*" goto Global_Mode
 for /f "usebackq tokens=1,2 delims=-" %%w in ('%profile_Name%') do set profile_Name=%%w&&set sub_year=%%x
 for %%y in (%Source_Location%\%profile_Name%*) do set /a Source_Location_Numba+=1&echo       %%~ny
 if not "%Source_Location_Numba%"=="" (
