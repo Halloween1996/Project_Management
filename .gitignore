@@ -1,0 +1,12 @@
+# Ignore all logs
+logs*
+*.log
+# Ignore any Configuation files and exe files.
+config.*
+*.exe
+*.ini
+*.inf
+*.md
+.txt
+!/readme*.md
+!/example*

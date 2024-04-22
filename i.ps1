@@ -10,6 +10,16 @@ Function readla ($param) {
 	}
 	Write-Host --------------------------------------------------------------------------------
 }
+if ($args) {
+    If ($args -match "^\d+$") {
+        $Number=$args[0]
+        readla ($Number)
+    } else {
+        $Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
+        Add-Content -LiteralPath "$dafile" -value "- $Nowtime $CurDir : $args"
+    }
+exit
+}
 Write-Host "1. Type Any Number to Review how many last messages that you have leaved to the profile. `n2. Type Anything to Leave your message to the profile.`n3. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded`n4. If you want also attach Current Diretory Name, set Variable 'Show_Dir' to 1 (true) "
 Write-Host --------------------------------------------------------------------------------
 Write-Host "Last 8 messages:"
