@@ -1,6 +1,6 @@
 Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 $ThisFolder = Split-Path -Path "$pwd" -Leaf
-Function choose-item() {
+Function Search-Result() {
     IF ($SearchFile.Count -gt 1) {
     	for($i=0;$i -lt $SearchFile.Count; $i++) {
     		$number= 1 + $i
@@ -58,8 +58,8 @@ If ($args) {
 # Logic 1:Search markdown File under profile folder
 if ($Args) {
     $SearchFile=(Get-ChildItem -Path "$Profile_Location\*$args*.md" -recurse).FullName
-    choose-item("$SearchFile")
-    if ($SearchFile -eq $null) {
+    Search-Result("$SearchFile")
+    if ($null -eq $SearchFile) {
         Write-Host No Profile Name Contain that string: $args
     } else {
         $global:dafile_Name = (Get-Item $dafile).BaseName
@@ -76,15 +76,15 @@ If (Test-Path "$pwd\.Project_InFo.txt") {
     Exit
 }
 # Logic 3: Search string in Project_Links.md
-$SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Links_File" -Pattern "$ThisFolder ").line
-if ($SearchFile -eq $null) {
+$SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$ThisFolder ").line
+if ($null -eq $SearchFile) {
 	Write-Host $pwd
     Write-Host "According to Projects_Links.md, current directory has not linking with any project profile. Please chose one profile to link with:"
     $SearchFile = (Get-ChildItem $Profile_Location\* -name)
-    choose-item($SearchFile)
-    Add-Content -LiteralPath "$Projects_Links_File" -value "$pwd := $dafile"
+    Search-Result($SearchFile)
+    Add-Content -LiteralPath "$Projects_Link_File" -value "$pwd := $dafile"
 } else {
-    choose-item($SearchFile)
+    Search-Result($SearchFile)
     $separator = " := "
     $Temp = $dafile -Split $separator
     $Temp = $Temp[1]

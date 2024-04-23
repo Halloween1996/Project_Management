@@ -32,15 +32,15 @@ Do
 	}
 	$Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
 	Write-Host "                         [$Nowtime]`n"
-	$input=Read-Host
-	if ($input.StartsWith(':')) {
-		$temp_command = $input.substring(1)
+	$User_input=Read-Host
+	if ($User_input.StartsWith(':')) {
+		$temp_command = $User_input.substring(1)
 		Invoke-Expression $temp_command
 		continue
 	}
-    if ($input -match "^\d+$") {
-        readla ($input)
+    if ($User_input -match "^\d+$") {
+        readla ($User_input)
 		continue
     }
-    Add-Content -LiteralPath "$dafile" -value "- $Nowtime $CurDir : $input"
-} until ($input -eq ":q")
+    Add-Content -LiteralPath "$dafile" -value "- $Nowtime $CurDir : $User_input"
+} until ($User_input -eq ":q")

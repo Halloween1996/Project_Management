@@ -8,11 +8,9 @@ Param ([int]$size)
     Else {""}
 }
 Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
-$Exclude_List="ini"
 $Nowtime = get-date -format "dddd yyyy-MM-dd HH:mm:ss tt"
 $Sort_Folder=$pwd
 $Just_Extension=$False
-[int]$Arrange_Number=0
 if ($Args) {
     if ($Args -eq "type") {
         Write-Host "Sort all file By their Extension Only?"
@@ -23,32 +21,45 @@ if ($Args) {
         $Sort_Folder=(Resolve-Path $Args)
     }
 }
-# Write-Host "$Sort_Folder"
-if (Test-Path "$Sort_Folder\Sort_bank.ini") {
-    $Sort_Bank=Get-Content -Path "$pwd\Sort_bank.ini"
+Write-Host "Loading $Sort_Folder"
+if (Test-Path "$Sort_Folder\Sort.txt") {
+    $Sort_Bank=Get-Content -Path "$Sort_Folder\Sort.txt"
+    $Exclude_List=(Get-Content -LiteralPath "$Sort_Folder\Sort.txt" -head 1)
 } else {
     $Sort_Bank=Get-Content -Path "$PSScriptRoot\Sort_bank.ini"
+    $Exclude_List=(Get-Content -LiteralPath "$PSScriptRoot\Sort_bank.ini" -head 1)
 }
+# Excluding_Item
+$Excuse_Item="Sort.txt Sort_Bank.ini"
 Foreach ($Search_Keyword in $Exclude_List.split(' ')) {
     $Search_Item=Get-ChildItem -path "$Sort_Folder" -file -Name| Select-String "$Search_Keyword"
     $Excuse_Item="$Search_Item $Excuse_Item"
 }
-# Write-Host "Initialize Finish. Configuation: $Sort_Bank"
+Write-Host "Exclude file:$Excuse_Item"
+# -----------------------------------------------------------------------
+Write-Host "Initialize Finish. Configuation: $Sort_Bank"
 if ($Just_Extension -eq $False) {
     Write-Host "---------> Arrangement by Keyword..."
     Foreach ($Line in $Sort_Bank) {
-        $path,$Keywords = $Line.split('|')
+        $Keywords,$Path = $Line.split('|')
+        Write-Host "Keywords: $Keywords"
+        Write-Host "Toward path: $Path"
+        if ($null -eq $path) {
+            Write-Host "Missing Path"
+            Continue
+        }
         Foreach ($Search_Keyword in $Keywords.split(' ')) {
-            $TheResults=Get-ChildItem -path "$Sort_Folder" -file| Where{$_.Name -match $Search_Keyword}
+            $TheResults=Get-ChildItem -path "$Sort_Folder" -file| Where-Object{$_.Name -match $Search_Keyword}
             if ($TheResults) {
+                if ($False -eq (Test-path $Path)) {mkdir $path}
                 $path = (Resolve-path $path)
                 ForEach ($Result in $TheResults) {
                     $File_Name = (Get-Item $Result).Name
-                    if (($Excuse_Item|Select-String "$File_Name") -eq $null) {
+                    if ($null -eq ($Excuse_Item|Select-String "$File_Name")) {
                         $Arrange_Number++
                         $File_Size = Format-FileSize((Get-Item $Result).Length)
                         $File_Name_Link = $File_Name -replace ' ','%20'
-                        Move -Path "$Result" -Destination "$path"
+                        Move-Item -LiteralPath "$Result" -Destination "$path"
                         Write-Host "[$Arrange_Number]  $File_Name --> $path"
                         Add-Content -LiteralPath "$Push_Pull_Logging" -value "**$Nowtime** : -$Arrange_Number- [$File_Name ($File_Size)]($path\$File_Name_Link)  just Moved."
                     }
@@ -57,25 +68,20 @@ if ($Just_Extension -eq $False) {
         }
     }
 }
-# Write-Host "Done with Configuation File: $Sort_Bank, Sort by File Extension."
-$Get_All_Extension=(Get-ChildItem -path "$pwd" -file).Extension
-if ($Get_All_Extension -ne $null) {
-    Write-Host "---------> Arrange by FIle Extension..."
-    Foreach($Ext_File_Name in $Get_All_Extension) {
-        $Folder_Name = ($Ext_File_Name.split('.'))[-1]
-        if ((Test-Path "$pwd\Arrangement\$Folder_Name") -eq $False) {
-            mkdir "$pwd\Arrangement\$Folder_Name"
-        }
-        Get-ChildItem -path "$pwd" -file| Where{$_.Extension -match $Ext_File_Name}|foreach {
-            $File_Name=$_.Name
-            if (($Excuse_Item|Select-String "$File_Name") -eq $null) {
-                $Arrange_Number++
-                move-Item -path $_ -Destination "$pwd\Arrangement\$Folder_Name"
-                $File_Size = Format-FileSize(($_.Length))
-                Write-Host "[$Arrange_Number]  $_.Name move to $Folder_Name"
-                Add-Content -LiteralPath "$Push_Pull_Logging" -value "**$Nowtime** : -$Arrange_Number- $_.Name($File_Size) move toward $Folder_Name"
-            }
-        }
+Write-Host "---------> Arrange by FIle Extension..."
+[int]$Arrange_Number=0
+Get-ChildItem -path "$pwd" -file| ForEach-Object {
+    $Get_Remain_File_Name=$_.Name
+    $Get_Remain_File_Extension=$_.Extension
+    Write-Host "Name is $Get_Remain_File_Name , and the ext is $Get_Remain_File_Extension"
+    if ($null -eq ($Excuse_Item|Select-String "$Get_Remain_File_Name")) {
+        $Arrange_Number++
+        $Arrangement_Folder_Name = ($Get_Remain_File_Extension.split('.'))[-1]
+        if ($False -eq (Test-Path "$pwd\Arrangement\$Arrangement_Folder_Name")) {mkdir "$pwd\Arrangement\$Arrangement_Folder_Name"}
+        move-Item -LiteralPath $_ -Destination "$pwd\Arrangement\$Arrangement_Folder_Name"
+        $File_Size = Format-FileSize(($_.Length))
+        Write-Host "[$Arrange_Number]  $_.Name move to $Arrangement_Folder_Name"
+        Add-Content -LiteralPath "$Push_Pull_Logging" -value "**$Nowtime** : -$Arrange_Number- $Get_Remain_File_Name($File_Size) has move toward Arrangement Folder: $Arrangement_Folder_Name"
     }
 }
-Write-Host "                      ---> Arrangement, Done. <---"
+Write-Host "                      ---> Arrangement, Done. <---"~
