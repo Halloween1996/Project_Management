@@ -43,4 +43,5 @@ Do
 		continue
     }
     Add-Content -LiteralPath "$dafile" -value "- $Nowtime $CurDir : $User_input"
-} until ($User_input -eq ":q")
+} until ($User_input -eq "wq")
+Write-Host "You're exit the appended edit mode now"

@@ -1,14 +1,20 @@
-Get-Content $PSScriptRoot\Search_Dir.ini|Invoke-Expression
+if (-not $Profile_Location) {Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression}
+Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
+$Second_Parameter=$args[1]
 If (!$args) {
 	Write-Host "Links:"
-	type "$Quick_Luanching_Dictionary"
+	Get-Content "$Quick_Luanching_Dictionary"
     Get-ChildItem "$Folder_Location_1"|Format-wide -autosize
 	Get-ChildItem "$Project_Location"|Format-wide -autosize
     exit
 }
-If ($args -eq "s") {
-	Start-Process "$My_Docs"
-	Exit
+IF ($Args[0] -eq "f") {
+	If (Get-Variable Folder_Location_$Second_Parameter) {
+		$Opening_Folder=(Get-Variable Folder_Location_$Second_Parameter -ValueOnly)
+		Write-Host "Opening the folder: $Opening_Folder"
+		Start-Process "$Opening_Folder"
+		Exit
+	}
 }
 If ($args -eq "dir") {
 	Start-Process $Quick_Luanching_Dictionary
@@ -45,7 +51,7 @@ foreach($line in $Link) {
 	$Target=$Target[1]
 	$Target=$Target -replace '\)'
     Set-Variable -Name abc_$n -Scope script -value $Target
-    Write-Host [$n] $Target
+    Write-Host [$n] $Line
 }
 # Check Folder
 Set-Variable -Name Search_Folder_Location -Scope script -value 0

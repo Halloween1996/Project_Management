@@ -26,26 +26,22 @@ if (Test-Path "$Sort_Folder\Sort.txt") {
     $Sort_Bank=Get-Content -Path "$Sort_Folder\Sort.txt"
     $Exclude_List=(Get-Content -LiteralPath "$Sort_Folder\Sort.txt" -head 1)
 } else {
-    $Sort_Bank=Get-Content -Path "$PSScriptRoot\Sort_bank.ini"
-    $Exclude_List=(Get-Content -LiteralPath "$PSScriptRoot\Sort_bank.ini" -head 1)
+    $Sort_Bank=Get-Content -Path "$Project_Location\Sort_Rules_Bank.md"
+    $Exclude_List=(Get-Content -LiteralPath "$Project_Location\Sort_Rules_Bank.md" -head 1)
 }
 # Excluding_Item
-$Excuse_Item="Sort.txt Sort_Bank.ini"
+$Excuse_Item="Sort.txt Sort_Rules_Bank.md"
 Foreach ($Search_Keyword in $Exclude_List.split(' ')) {
     $Search_Item=Get-ChildItem -path "$Sort_Folder" -file -Name| Select-String "$Search_Keyword"
     $Excuse_Item="$Search_Item $Excuse_Item"
 }
 Write-Host "Exclude file:$Excuse_Item"
-# -----------------------------------------------------------------------
-Write-Host "Initialize Finish. Configuation: $Sort_Bank"
+# Write-Host "Initialize Finish. Configuation: $Sort_Bank"
 if ($Just_Extension -eq $False) {
     Write-Host "---------> Arrangement by Keyword..."
     Foreach ($Line in $Sort_Bank) {
         $Keywords,$Path = $Line.split('|')
-        Write-Host "Keywords: $Keywords"
-        Write-Host "Toward path: $Path"
         if ($null -eq $path) {
-            Write-Host "Missing Path"
             Continue
         }
         Foreach ($Search_Keyword in $Keywords.split(' ')) {
