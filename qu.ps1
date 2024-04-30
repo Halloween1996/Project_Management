@@ -17,7 +17,7 @@ Function Search-Result() {
             Add-Content -LiteralPath "$progress\$new_project.md" -Value "Project_URL := $pwd"
 		    $Nowtime = get-date -format "dddd yyyy-MM-dd hh:mm:ss tt"
 		    Add-Content -LiteralPath "$progress\$new_project.md" -Value "This File Created at $Nowtime"
-            Add-Content -LiteralPath "$progress\Projects_Links.md" -value "$pwd := $new_project.md"
+            Add-Content -LiteralPath "$progress\Projects_Links.md" -value "$Nowtime := $pwd := $new_project.md"
             exit
         }
     	$chosen = $chosen - 1
@@ -46,52 +46,49 @@ Function New-Project() {
     exit
 }
 # Initialized
-If ($args) {
-    if (Test-Path $args) {
-        $Local:ThatFolder=Resolve-Path "$Args"
-        $ThisFolder=(Split-Path -Path "$ThatFolder" -Leaf)
-    }
-    if ($args -eq "newpj") {
-        New-Project
-    }
-}
 # Logic 1:Search markdown File under profile folder
 if ($Args) {
     $SearchFile=(Get-ChildItem -Path "$Profile_Location\*$args*.md" -recurse).FullName
     Search-Result("$SearchFile")
-    if ($null -eq $SearchFile) {
+    if (!$SearchFile) {
         Write-Host No Profile Name Contain that string: $args
     } else {
         $global:dafile_Name = (Get-Item $dafile).BaseName
         $host.UI.RawUI.WindowTitle="$dafile_Name"
         Write-Host "Dafile Set as $dafile_Name"
-        Set-URL
         Exit
     }
 }
-# Logic 2: current directory exist Project_InFo.txt or not
-If (Test-Path "$pwd\.Project_InFo.txt") {
-    $global:dafile=(Get-Content -Path "$pwd\.Project_InFo.txt" -TotalCount 1)
+# Logic 2: current directory exist pjInFo.txt or not
+If (Test-Path "$pwd\.profileInfo.txt") {
+    $global:dafile=(Get-Content -Path "$pwd\.profileInfo.txt" -TotalCount 1)
     $global:dafile_Name=($dafile -split '\\')[-1]
     Exit
 }
 # Logic 3: Search string in Project_Links.md
-$SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$ThisFolder ").line
+If ($args) {
+    $Search_String=$args
+    if ($args -eq "newpj") {
+        New-Project
+    }
+}
+$SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$Search_String ").line
+Write-Host "------------------------------"
 if ($null -eq $SearchFile) {
 	Write-Host $pwd
     Write-Host "According to Projects_Links.md, current directory has not linking with any project profile. Please chose one profile to link with:"
     $SearchFile = (Get-ChildItem $Profile_Location\* -name)
     Search-Result($SearchFile)
-    Add-Content -LiteralPath "$Projects_Link_File" -value "$pwd := $dafile"
+    Add-Content -LiteralPath "$Projects_Link_File" -value "$Nowtime := $pwd := $dafile"
 } else {
     Search-Result($SearchFile)
     $separator = " := "
     $Temp = $dafile -Split $separator
-    $Temp = $Temp[1]
-    $global:dafile_Name = $Temp
-    $global:dafile = "$Profile_Location\$Temp"
+    $global:purl = $Temp[1]
+    $global:dafile_Name = $Temp[2]
+    $global:dafile = "$Profile_Location\$($Temp[2])"
     $host.UI.RawUI.WindowTitle="$dafile_Name"
-    Write-Host "According to projects_link.md, dafile set as $dafile_Name"
-    Write-Host "the profile address is $dafile"
-    Set-URL
+    Write-Host "According to projects_link.md, profile set as $dafile_Name"
+    Write-Host "The profile address is $dafile"
+    Write-Host "The project folder is $purl"
 }

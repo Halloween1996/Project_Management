@@ -46,8 +46,8 @@ Function Move-Excution ($Param) {
             $Object_Path=Resolve-Path $Line
             $Toward_Object_Name=($Object_Path -split '\\')[-1]
             $File_Size = Format-FileSize((Get-Item $Object_Path).Length)
-            Move-Item -Path $Object_Path -Destination $Toward_Path
-            Add-Content -LiteralPath "$Push_Pull_Logging" -value "- $Nowtime : **$Toward_Object_Name `($File_Size`)** Move toward [$Toward_Path_Name]($Toward_Path)"
+            Move-Item -LiteralPath $Object_Path -Destination $Toward_Path
+            Add-Content -LiteralPath "$Push_Pull_Logging" -value "- $Nowtime := **$Toward_Object_Name `($File_Size`)** Move toward [$Toward_Path_Name]($Toward_Path)"
             Write-Host "$Toward_Object_Name ($File_Size) --> $Toward_Path_Name"
         }
     }
@@ -58,8 +58,18 @@ $Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
 $Search_Location = $Project_Location
 IF (Test-Path -path $args[-1] -ErrorAction SilentlyContinue) {
     $Search_Project=(Get-ChildItem -path "$Project_Location" -Directory)
-    Select-Result($Search_Project)
-    $Toward_Path = $MyChoose
+    If ($purl) {
+        $has_Set= Read-Host "Just Press the enter to Move toward $purl"
+        If (!$has_Set) {
+            $Push_Pull_Logging = $dafile
+            $Toward_Path = $purl
+            $purl_log = $true
+            Write-Host "Move to $Toward_Path"
+        } else {
+            Select-Result($Search_Project)
+            $Toward_Path = $MyChoose
+        }
+    }
 } else {
     Set-Variable -Name Keyword -scope Script -Value $args[-1]
     # Write-Host "Okay, it is not a path. The keyword is $Keyword"
@@ -74,9 +84,9 @@ IF (Test-Path -path $args[-1] -ErrorAction SilentlyContinue) {
         Select-Result($SearchFile)
         $separator = " := "
         $Temp = $MyChoose -Split $separator
-        $Toward_Path=$Temp[0]
-        $Keyword=$Temp[1]
-        $global:dafile_Name = $Temp[1]
+        $Toward_Path=$Temp[1]
+        $Keyword=$Temp[2]
+        $global:dafile_Name = $Temp[2]
         $global:dafile = "$Profile_Location\$Keyword"
     } else {
         Select-Result($Search_Project)
@@ -93,7 +103,7 @@ Write-Host "---------------------------"
 if (Test-Path "$Toward_Path\.Project_InFo.txt") {
     $Local:Push_Pull_Logging=Get-Content -Path "$Toward_Path\.Project_InFo.txt" -TotalCount 1
     Write-host "I Found .Project_Info.txt, record the event toward $Push_pull_Logging"
-} else {
+} elseif (!$purl_log) {
     $Search_Profile=(Get-ChildItem -path "$Profile_Location" -Name "*$keyword*" -File)
     if ($Search_Profile.Count -eq 1) {
         $Push_Pull_Logging="$Profile_Location\$Search_Profile"

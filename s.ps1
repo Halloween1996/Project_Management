@@ -5,6 +5,7 @@ If (!$args) {
 	Write-Host "Links:"
 	Get-Content "$Quick_Luanching_Dictionary"
     Get-ChildItem "$Folder_Location_1"|Format-wide -autosize
+	Get-ChildItem "$Folder_Location_2"|Format-wide -autosize
 	Get-ChildItem "$Project_Location"|Format-wide -autosize
     exit
 }
@@ -54,18 +55,18 @@ foreach($line in $Link) {
     Write-Host [$n] $Line
 }
 # Check Folder
-Set-Variable -Name Search_Folder_Location -Scope script -value 0
-Do
-{
-	$Search_Folder_Location++
-	$Folder_Location = Get-Variable Folder_Location_$Search_Folder_Location -ValueOnly
+[int]$Searching_Location_Index_Num=1
+while (Get-Variable Folder_Location_$Searching_Location_Index_Num -erroraction 'silentlycontinue') {
+	$Folder_Location = (Get-Variable Folder_Location_$Searching_Location_Index_Num -ValueOnly)
 	$ddc = Get-ChildItem "$Folder_Location\*$args*" -Name
 	foreach($line in $ddc) {
 		$n++
 		Set-Variable -Name abc_$n -Scope script -value "$Folder_Location\$line"
 		Write-Host [$n] $line
 	}
-} Until ($Search_Folder_Location -eq 1)
+	$Searching_Location_Index_Num++
+}
+# Write-Host "Does not exist Search_Folder_Location_$Searching_Location_Index_Num++"
 # Determinate Result
 if ($n -eq 0) {
 	Write-Host "No Result Found"
