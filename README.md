@@ -3,7 +3,7 @@
 
 在详细介绍本项目之前, 我想跟你分享一下我的Get Thing Done 模型
 
-![](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/PJM%E7%BB%93%E6%9E%84.png)
+![](https://github.com/Halloween1996/Project_Management/blob/ded2ef12bc7908bcefbcb2e49363a0e044fc6027/IMG/GTD%E8%A7%84%E5%88%92%E5%9B%BE.png)
 
 # Get Thing Done - 私人执行事项管理论
 平时我收到新的文件 或者 布置一项新的任务, 我通常会:
@@ -19,11 +19,11 @@
 2. 普通, 进入待办事项, 有序处理.
 3. 困难, 记录在相关的项目推进日志里面, 然后等到某个时刻, 慢慢进行肢解成一条条目的步骤都明确的待办事项, 再有序处理.
 
-![.\IMG\行动力与执行四要素.png](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/%E8%A1%8C%E5%8A%A8%E5%8A%9B%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%9B%9B%E8%A6%81%E7%B4%A0.png)
+![行动力与执行四要素.png](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/%E8%A1%8C%E5%8A%A8%E5%8A%9B%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%9B%9B%E8%A6%81%E7%B4%A0.png)
 
 最后, 对已完成的项目进行归档 (也就意味着相关的任务已经完成, 相关的文件可以告一段路, 或者删除处理).
 
-[GTD规划图.png](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/PJM%E7%BB%93%E6%9E%84.png)
+![](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/PJM%E7%BB%93%E6%9E%84.png)
 
 好了, 你的GTD模型满眼都是项目和行动.让我眼花缭乱.
 
