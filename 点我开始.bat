@@ -3,11 +3,11 @@ echo Hi, If you are new, you may set up the variable your via this script,or pre
 echo if you are not, I only can do just open the existing configuation file for you.
 echo existing configuation:
 Set Num=0
+for %%a in (%cd%\*.ini) do set /a num+=1&&echo [%num%] %%~na
 if %Num% equ 0 goto new
-for %%a in (%cd%/*.ini) do set /a num+=1&&echo [%num%] %%~na
 Set /p input=Okay, Tell me what file you want to open:
 Echo you want to open:
-for %%b in (%cd%/*%input%*.ini) do Start "" "%%~b"
+for %%b in (%cd%\*%input%*.ini) do Start "" "%%~b"
 exit
 :new
 Set "Profile_Location=%CD%\Profile"
@@ -60,7 +60,7 @@ For /f "delims= skip=32" %%i in (%~0) do (
             %%i
         )
     )
-)
+)>>%cd%\Project_variable.ini
 pause
 echo Now is the configuation for s.ps1.
 Echo Just like push got has a file that contain linking information; this also do. But it is for the Website.
@@ -77,10 +77,10 @@ echo Now, You have to tell me which folder is searchable. when you are finish, d
 Set /a Searchable_Folder_Location_Count+=1
 Set /p Folder_Location=Folder_Location_!Searchable_Folder_Location_Count!:
 If Not "!Folder_Location!"=="" (
-    Echo $Folder_Location_!Searchable_Folder_Location_Count!=!Folder_Location!
+    Echo $Folder_Location_!Searchable_Folder_Location_Count!=!Folder_Location! >>!cd!\Searching_Variable_List.md
     Set "Folder_Location="
 ) else (
-    Echo All Done.
+    Echo All Done. Please Move Searching_Variable_List.md to the folder where Storage Profiles.
     Pause
     Exit
 )
