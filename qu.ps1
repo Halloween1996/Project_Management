@@ -46,9 +46,30 @@ Function New-Project() {
     exit
 }
 # Initialized
+if ($Args -eq "+") {
+    $Week_Of_The_Year = get-date -UFormat %V
+    $Today_Notes = get-date -format "yyyy-MM-dd ddd"
+    Write-host "Today is $Today_Notes $($Week_Of_The_Year)周, the notes existense is:"
+    Test-Path "$Diary_Location\$Today_Notes $($Week_Of_The_Year)周.md"
+    $global:dafile = "$Diary_Location\$Today_Notes $($Week_Of_The_Year)周.md"
+    $global:dafile_Name="$Today_Notes $($Week_Of_The_Year)周.md"
+    Write-host 'Anyway, <Dafile> Variable has set.'
+    Exit
+}
+if ($Args[-2] -eq "diary") {
+    $Today_Notes=$args[-1]
+    $SearchFile=(Get-ChildItem -Path "$Diary_Location\*$Today_Notes*.md" -recurse).FullName
+    Search-Result($SearchFile)
+    Write-Host "The diary file is $dafile"
+    Exit
+}
+if ($args -eq "newpj") {
+    New-Project
+}
 # Logic 1:Search markdown File under profile folder
 if ($Args) {
     $SearchFile=(Get-ChildItem -Path "$Profile_Location\*$args*.md" -recurse).FullName
+    $Search_String=$args
     Search-Result("$SearchFile")
     if (!$SearchFile) {
         Write-Host No Profile Name Contain that string: $args
@@ -58,6 +79,10 @@ if ($Args) {
         Write-Host "Dafile Set as $dafile_Name"
         Exit
     }
+        # Logic 3: Search string in Project_Links.md
+        $SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$Search_String ").line
+} else {
+    $SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$Pwd ").line
 }
 # Logic 2: current directory exist pjInFo.txt or not
 If (Test-Path "$pwd\.profileInfo.txt") {
@@ -65,14 +90,6 @@ If (Test-Path "$pwd\.profileInfo.txt") {
     $global:dafile_Name=($dafile -split '\\')[-1]
     Exit
 }
-# Logic 3: Search string in Project_Links.md
-If ($args) {
-    $Search_String=$args
-    if ($args -eq "newpj") {
-        New-Project
-    }
-}
-$SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$Search_String ").line
 Write-Host "------------------------------"
 if ($null -eq $SearchFile) {
 	Write-Host $pwd

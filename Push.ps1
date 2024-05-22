@@ -74,12 +74,12 @@ IF (Test-Path -path $args[-1] -ErrorAction SilentlyContinue) {
     Set-Variable -Name Keyword -scope Script -Value $args[-1]
     # Write-Host "Okay, it is not a path. The keyword is $Keyword"
     IF ($args[-2] -eq "+") {
-        $Search_Location = “C:\Users\Halloween\SynologyDrive\Chronology”
+        $Search_Location = “$Achived_Repository”
         Write-Host "Search Location has Shifted."
     }
     $Search_Project=(Get-ChildItem -path "$Search_Location" -Directory | Select-String "$Keyword" -List)
     If ($null -eq $Search_Project) {
-        $SearchFile=(Select-String -SimpleMatch -LiteralPath "$Projects_Link_File" -Pattern "$Keyword ").line
+        $SearchFile=(Select-String -SimpleMatch -Path "$Projects_Link_File" -Pattern "$Keyword ").line
         $Search_Location = $Profile_Location
         Select-Result($SearchFile)
         $separator = " := "

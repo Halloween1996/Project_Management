@@ -38,6 +38,17 @@ Do
 		Invoke-Expression $temp_command
 		continue
 	}
+	if ($User_input.StartsWith('!')) {
+		$Todo_Notes = $User_input.substring(1)
+		Add-Content -LiteralPath "$dafile" -value "- [ ] $Todo_Notes ($Nowtime)"
+		continue
+	}
+	if ($User_input.StartsWith('?')) {
+		$Todone_Notes = $User_input.substring(1)
+		$SearchFile=(Select-String -SimpleMatch -LiteralPath "$dafile" -Pattern "$ToDone_Notes").line
+		continue
+	}
+
     if ($User_input -match "^\d+$") {
         readla ($User_input)
 		continue

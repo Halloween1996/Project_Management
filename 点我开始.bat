@@ -12,41 +12,47 @@ exit
 :new
 Set "Profile_Location=%CD%\Profile"
 Set "Project_Location=%CD%\Project"
-Set "Projects_Link_File=%CD%\Projects_Link.md"
+Set "Projects_Link_File=Projects_Link.md"
 Echo Okay, Let's Set up:
-Echo 1st, give me a folder path for Storage Profile:
+Echo give me a existing folder path for Storage Profile:
 Set /p User_Profile_Location=
-If exist %User_Profile_Location% Set "Profile_Location=%User_Profile_Location%"
-Echo 2nd, give me a folder path set as a project repository , Which is a folder that mainly Storage Project Folder:
+Echo give me a existing folder path set as a project repository, Which is a folder that mainly Storage Project Folder:
 Set /p User_Project_Location=
+Echo 5th, What is the Name of Achived Repository?
+Set /p Achived_Repository_Name=
+If exist %User_Profile_Location% Set "Profile_Location=%User_Profile_Location%"
 If exist %User_Project_Location% Set "Project_Location=%User_Project_Location%"
-Echo 3rd, For those Projects which is not under Project repository, Provide me a Folder path to save those Project Folder path and related Profile Name Info.
-Set /p User_Projects_Links_File= 
-If exist %User_Projects_Link_File% Set "Projects_Link_File=%User_Projects_Links_File%"
-Echo 4th, I need to set a Profile Name as a default logging file. In Case you push a File toward project via script but no profile is linked with the Project Folder.
-Set /p Push_Pull_Logging=
-If "%Push_Pull_Logging%"=="" Set "Push_Pull_Logging=Moving_History"
+If "%Achived_Repository_Name%"=="" Set "Achived_Repository_Name=Achived_Repository"
 echo All set!
-echo --------------
+Echo Projects_Link.md is a record file for linking a profile with those Projects, which is not under Project repository.
+Echo Moving_History.md is a default logging file. In Case pushing a File toward project via script but no profile is linked with the Project Folder.
+Echo --------------------
 Setlocal Enabledelayedexpansion
 echo Some path that you provide is not exist. two solutions:
 Echo Solution #1: I Create the folder as you told me.
 echo $Profile_Location="!User_Profile_Location!"
 echo $Project_Location="!User_Project_Location!"
+echo $Achived_Repository="!User_Project_Location!\!Achived_Repository_Name!"
 echo $Projects_Link_File="!User_Projects_Links_File!\Projects_Link.md"
-echo $Push_Pull_Logging="!User_Profile_Location!!Push_Pull_Logging!.md"
+echo $Push_Pull_Logging="!User_Profile_Location!\Moving_History.md"
+echo $Diary_Location="!User_Project_Location!\Diary_logs"
 Echo --------------------
 Echo Solution #2: I modify your input for those folder is not exist.
 echo $Profile_Location="!Profile_Location!"
 echo $Project_Location="!Project_Location!"
-echo $Projects_Link_File="!Projects_Link_File!"
-echo $Push_Pull_Logging="!Profile_Location!!Push_Pull_Logging!.md"
+echo $Achived_Repository="!Project_Location!\!Achived_Repository_Name!"
+echo $Projects_Link_File="!Profile_Location!\Projects_Link.md"
+echo $Push_Pull_Logging="!Profile_Location!\Moving_History.md"
+echo $Diary_Location="!Project_Location!\Diary_logs"
+Echo --------------------
+echo Enter "0" to start over again. 
 Set /p User_Choose=I Choose solution #:
 Set OffSet_Line=0
-If "%User_CHoose%"=="2" Set OffSet_Line=7
-Set Write_Numb=4
+If "%User_Choose%"=="2" Set OffSet_Line=9
+If "%User_Choose%"=="0" Goto new
+Set Write_Numb=6
 Set OffSet=0
-For /f "delims= skip=34" %%i in (%~0) do (
+For /f "delims= skip=32" %%i in (%~0) do (
     Set /a OffSet_Line-=1
     If !OffSet_Line! leq 0 (
         Set /a Write_Numb-=1
