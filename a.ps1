@@ -26,8 +26,8 @@ if (Test-Path "$Sort_Folder\Sort.txt") {
     $Sort_Bank=Get-Content -Path "$Sort_Folder\Sort.txt"
     $Exclude_List=(Get-Content -LiteralPath "$Sort_Folder\Sort.txt" -head 1)
 } else {
-    $Sort_Bank=Get-Content -Path "$Project_Location\Sort_Rules_Bank.md"
-    $Exclude_List=(Get-Content -LiteralPath "$Project_Location\Sort_Rules_Bank.md" -head 1)
+    $Sort_Bank=Get-Content -Path "$Profile_Location\Sort_Rules_Bank.md"
+    $Exclude_List=(Get-Content -LiteralPath "$Profile_Location\Sort_Rules_Bank.md" -head 1)
 }
 # Excluding_Item
 $Excuse_Item="Sort.txt Sort_Rules_Bank.md"

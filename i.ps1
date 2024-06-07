@@ -48,7 +48,6 @@ Do
 		$SearchFile=(Select-String -SimpleMatch -LiteralPath "$dafile" -Pattern "$ToDone_Notes").line
 		continue
 	}
-
     if ($User_input -match "^\d+$") {
         readla ($User_input)
 		continue
