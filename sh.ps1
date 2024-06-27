@@ -84,13 +84,13 @@ IF (Test-Path -path $args[-1] -ErrorAction SilentlyContinue) {
         Select-Result($SearchFile)
         $separator = " := "
         $Temp = $MyChoose -Split $separator
-        $Toward_Path=$Temp[1]
+        $Local:Toward_Path=$Temp[1]
         $Keyword=$Temp[2]
         $global:dafile_Name = $Temp[2]
         $global:dafile = "$Profile_Location\$Keyword"
     } else {
         Select-Result($Search_Project)
-        $Toward_Path = $MyChoose
+        $Local:Toward_Path = $MyChoose
     }
     if (-Not $args[1]) {
         Invoke-Item $Toward_Path

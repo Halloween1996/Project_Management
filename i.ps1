@@ -24,7 +24,6 @@ Write-Host "1. Type Any Number to Review how many last messages that you have le
 Write-Host --------------------------------------------------------------------------------
 Write-Host "Last 8 messages:"
 readla (8)
-Get-Content -LiteralPath "$dafile" -head 2|Write-Host
 Do
 {
 	if ($Show_Dir -eq $true) {
@@ -33,6 +32,10 @@ Do
 	$Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
 	Write-Host "                         [$Nowtime]`n"
 	$User_input=Read-Host
+	if ($User_input.StartsWith('#')) {
+		Add-Content -LiteralPath "$dafile" -value "$User_input"
+		continue
+	}
 	if ($User_input.StartsWith(':')) {
 		$temp_command = $User_input.substring(1)
 		Invoke-Expression $temp_command
@@ -46,6 +49,8 @@ Do
 	if ($User_input.StartsWith('?')) {
 		$Todone_Notes = $User_input.substring(1)
 		$SearchFile=(Select-String -SimpleMatch -LiteralPath "$dafile" -Pattern "$ToDone_Notes").line
+		Write-host ----------------------------
+		Write-Host $SearchFile
 		continue
 	}
     if ($User_input -match "^\d+$") {
