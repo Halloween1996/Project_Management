@@ -1,5 +1,6 @@
 if (-not $Profile_Location) {Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression}
 Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
+$Inquire_String=$args[0]
 $Second_Parameter=$args[1]
 If (!$args) {
 	Write-Host "Links:"
@@ -9,7 +10,7 @@ If (!$args) {
 	Get-ChildItem "$Project_Location"|Format-wide -autosize
     exit
 }
-IF ($Args[0] -eq "f") {
+IF ($Inquire_String -eq "f") {
 	If (Get-Variable Folder_Location_$Second_Parameter) {
 		$Opening_Folder=(Get-Variable Folder_Location_$Second_Parameter -ValueOnly)
 		Write-Host "Opening the folder: $Opening_Folder"
@@ -56,14 +57,19 @@ foreach($line in $Link) {
 }
 # Check Folder
 [int]$Searching_Location_Index_Num=1
-while (Get-Variable Folder_Location_$Searching_Location_Index_Num -erroraction 'silentlycontinue') {
-	$Folder_Location = (Get-Variable Folder_Location_$Searching_Location_Index_Num -ValueOnly)
+Get-Variable Folder_Location_*|ForEach-Object {
+	$Folder_Location =  $_.Value
+	$Folder_Location
+	$args
+	Pause
 	$ddc = Get-ChildItem "$Folder_Location\*$args*" -Name
 	foreach($line in $ddc) {
 		$n++
 		Set-Variable -Name abc_$n -Scope script -value "$Folder_Location\$line"
 		Write-Host [$n] $line
 	}
+	Write-Host "[var](Folder_Location_$Searching_Location_Index_Num)"
+	pause
 	$Searching_Location_Index_Num++
 }
 # Write-Host "Does not exist Search_Folder_Location_$Searching_Location_Index_Num++"

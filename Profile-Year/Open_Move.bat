@@ -5,6 +5,7 @@ set Source_Location=
 set Final_Location=
 for /f "usebackq delims=" %%c in ("%~dp0\project_variable.ini") do set %%c
 set session_num=0
+echo Hello, Here is version 1.1 and today is %date%.
 echo log Directory: %logging_Location%
 if "%1"=="" goto open
 Set "Init_Path=True"
@@ -47,6 +48,7 @@ set /a session_num+=1
 echo.
 echo ----------[Session %session_num%] ---------- Time: %time%
 set /p profile_Name= Enter a Path to MOVE or a Keyword to OPEN folder        
+if "%profile_Name%"==";" CMD
 if exist "%profile_Name%" (
     set "File_Path=%profile_Name%"
     echo I think it is a path. moving file is executing.
@@ -86,11 +88,11 @@ If %result_Count% equ 0 echo No Result at all&goto :eof
 set decision=%IsthisOne1%
 If %result_Count% geq 2 (
     echo I found %result_Count% Results, which one?
-    echo If you enter 0; result set to be empty; if you enter ":", this session will end.
+    echo If you enter 0; result set to be empty; if you enter ";", this session will end.
     Set /p userchoice=I choose No.
     if defined IsThisOne!userchoice! call set "decision=%%IsThisOne!userchoice!%%"
     if "!userchoice!"=="0" set "decision="& goto ChooseIsEnd
-    if "!userchoice!"==":" echo Okay. This session is complete. &goto open
+    if "!userchoice!"==";" echo Okay. This session is complete. &goto open
     if not defined IsthisOne!userchoice! (
         Set "addition=!userchoice!"
         goto WhichChoose

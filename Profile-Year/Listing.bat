@@ -9,7 +9,7 @@ for /f "tokens=1,2,3* delims=," %%a in ("%Child_Name%") do (
 )
 setlocal EnableDelayedExpansion
 echo OKay, then what do you want to put it on:
-for /f "usebackq skip=39 tokens=* delims=" %%i in (%0) do (
+for /f "usebackq skip=39 tokens=* delims=" %%i in (%~dpnx0) do (
 	set /a num+=1
 	set document!num!=%%~i
 	echo No.!num! %%~i
