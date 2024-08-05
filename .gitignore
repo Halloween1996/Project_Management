@@ -1,4 +1,5 @@
 # Ignore all logs
+\logs
 logs*
 *.log
 # Ignore any Configuation files and exe files.
