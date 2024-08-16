@@ -74,8 +74,8 @@ Get-ChildItem -path "$pwd" -file| ForEach-Object {
     if ($null -eq ($Excuse_Item|Select-String "$Get_Remain_File_Name")) {
         $Arrange_Number++
         $Arrangement_Folder_Name = ($Get_Remain_File_Extension.split('.'))[-1]
-        if ($False -eq (Test-Path "$pwd\Arrangement\$Arrangement_Folder_Name")) {mkdir "$pwd\Arrangement\$Arrangement_Folder_Name"}
-        move-Item -LiteralPath $_ -Destination "$pwd\Arrangement\$Arrangement_Folder_Name"
+        if ($False -eq (Test-Path "$pwd\$Arrangement_Folder_Name")) {mkdir "$pwd\$Arrangement_Folder_Name"}
+        move-Item -LiteralPath $_ -Destination "$pwd\$Arrangement_Folder_Name"
         $File_Size = Format-FileSize(($_.Length))
         Write-Host "[$Arrange_Number]  $_.Name move to $Arrangement_Folder_Name"
         Add-Content -LiteralPath "$Push_Pull_Logging" -value "**$Nowtime** : -$Arrange_Number- $Get_Remain_File_Name($File_Size) has move toward Arrangement Folder: $Arrangement_Folder_Name"

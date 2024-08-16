@@ -6,7 +6,7 @@ $Today_date = (get-date -format "yyyy-MM-dd dddd")
 $Today_Note = "$PSScriptRoot\logs\$Today_date.md"
 $daProfile = "$Today_Note"
 $Project = $Project_Location
-if (!(Test-Path “$daProfile”)) {ni $daProfile -type file}
+if (!(Test-Path $daProfile)) {New-item $daProfile -type file}
 Function Search-Result() {
     IF ($SearchFile.Count -gt 1) {
     	for($i=0;$i -lt $SearchFile.Count; $i++) {
@@ -73,21 +73,22 @@ if ($args) {
     }
 exit
 }
-Write-Host "1. Type Any Number to Review how many last messages that you have leaved to the profile. "
-Write-Host "2. Type Anything to Leave your message to the profile."
-Write-Host "3. If you want to search specific keyword from the Profile, Begin with Question Mark(?)"
-Write-Host "4. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded"
-Write-Host "5. cls, ls, s are the special manipulating commands."
+# Write-Host "1. Type Any Number to Review how many last messages that you have leaved to the profile. "
+# Write-Host "2. Type Anything to Leave your message to the profile."
+# Write-Host "3. If you want to search specific keyword from the Profile, Begin with Question Mark(?)"
+# Write-Host "4. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded"
+# Write-Host "5. cls, ls, s are the special manipulating commands."
+Write-Host "Hi, Today is $Today_date, and the Last 10 messages are:"
 Write-Host --------------------------------------------------------------------------------
-Write-Host "Last 10 messages:"
 readla (10)
 Do
 {
 	$Nowtime = get-date -format "hh:mm:ss tt"
 	if ($Project -ne $Project_Location) {Write-Host $Project}
-	Write-Host "                         [$Nowtime]`n"
+	if ($daProfile -ne "$Today_Note") {$daProfile_Name=($daProfile -split '\\')[-2]}
+	Write-Host "                         [$Nowtime]   $daProfile_Name`n"
 	$User_input=Read-Host
-		if ($User_input -eq "") {
+	if ($User_input -eq "") {
 		Clear-Host
 		readla (12)
 		Continue
@@ -95,6 +96,7 @@ Do
 	if ($User_input -eq "cls") {
 		$Project = $Project_Location
 		$daProfile = "$Today_Note"
+		Clear-Variable -Name daProfile_Name
 		Continue
 	}
 	if ($User_input -eq "ls") {
@@ -126,36 +128,32 @@ Do
 		$Todone_Notes = $User_input.substring(1)
 		$SearchFile=(Select-String -SimpleMatch -LiteralPath "$daProFile" -Pattern "$ToDone_Notes").line
 		Write-host ----------------------------
-		Write-Host $SearchFile
+		$SearchFile|Write-Host
 		Continue
 	}
 	if ($User_input.StartsWith('#')) {
 		Add-Content -LiteralPath "$daProFile" -value "$User_input"
 		Continue
 	}
-	if ($User_input.StartsWith('@')) {
+	if ($User_input.StartsWith('\')) {
 		$ToSearch = $User_input.substring(1)
-		$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*" -Directory).FullName
-		Search-Result("$SearchFile")
-		$daProfile="$dafile\profile.md"
-		$Project=$daFile
-		Write-Host "Now The Project is $Project"
-		Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
-		readla(8)
-		Continue
-	}
-	if ($User_input.StartsWith('!')) {
-		$ToSearch = $User_input.substring(1)
-		$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
+		If ($Project -ne $Project_Location) {
+			$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*" -Recurse -Directory).FullName
+			Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
+		} else {
+			$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
+		}
 		Search-Result("$SearchFile")
 		$daProfile="$dafile\profile.md"
 		$Project=$daFile
 		Clear-Host
 		Write-Host "Now The Project is $Project"
-		Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
 		readla(8)
 		Continue
 	}
+	if ($User_input.StartsWith('"')) {
+		$User_input = $User_input.Replace("`"","")
+    }
 	if (Test-Path -LiteralPath $User_input -PathType Container) {
 		$Project=$User_input
 		Write-host "Now, The Project is $Project"
