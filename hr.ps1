@@ -1,6 +1,7 @@
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 	Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
+	$Project_History="$Profile_Location\History.md"
 }
 $Today_date = (get-date -format "yyyy-MM-dd dddd")
 $Today_Note = "$PSScriptRoot\logs\$Today_date.md"
@@ -63,6 +64,13 @@ Function Search-File ($param) {
 	}
 	Start-Process "$abc_1"
 }
+function Read-Historical {
+    $lines = Get-Content -Path "$Project_History" -Tail 10
+    for ($i = 0; $i -lt $lines.Length; $i++) {
+        Set-Variable -Name "cl$($i + 1)" -Value $lines[$i] -Scope Global
+		Write-Host $($i+1) $lines[$i]
+    }
+}
 if ($args) {
     If ($args -match "^\d+$") {
         $Number=$args[0]
@@ -88,6 +96,7 @@ Do
 	if ($daProfile -ne "$Today_Note") {$daProfile_Name=($daProfile -split '\\')[-2]}
 	Write-Host "                         [$Nowtime]   $daProfile_Name`n"
 	$User_input=Read-Host
+	$NowDateTime = get-date -format "yyyyMMdd_HH:mm:ss"
 	if ($User_input -eq "") {
 		Clear-Host
 		readla (12)
@@ -98,6 +107,18 @@ Do
 		$daProfile = "$Today_Note"
 		Clear-Variable -Name daProfile_Name
 		Continue
+	}
+	if ($User_input -eq "cl") {
+		Read-Historical
+		Continue
+	}
+	if ($User_input.StartsWith('cl ')) {
+		$Num=$User_input.substring(3)
+		$fullparts = Get-Variable -Name "cl$Num" -ValueOnly
+		$fullparts = $fullparts.Split('=')
+		$Project = $fullparts[1]
+		Write-Host "Project has change to: $project"
+		continue
 	}
 	if ($User_input -eq "ls") {
 		Get-ChildItem -Path $Project
@@ -148,6 +169,7 @@ Do
 		$Project=$daFile
 		Clear-Host
 		Write-Host "Now The Project is $Project"
+		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
 		readla(8)
 		Continue
 	}
@@ -157,8 +179,7 @@ Do
 	if (Test-Path -LiteralPath $User_input -PathType Container) {
 		$Project=$User_input
 		Write-host "Now, The Project is $Project"
-		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: $Project has located"
-		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: $Project has located"
+		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
 		Continue
 	}
 	if (Test-Path -LiteralPath $User_input -PathType Leaf) {
