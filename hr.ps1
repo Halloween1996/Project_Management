@@ -187,8 +187,8 @@ Do
 		$Toward_Object_Name=($User_Input -split '\\')[-1]
 		$File_Size = Format-FileSize((Get-Item $User_Input).Length)
 		Move-Item -LiteralPath $User_Input -Destination $Project
-		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has movced"
-		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has movced"
+		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $Project"
+		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $Project"
 		Continue
 	}
     if ($User_input -match "^\d+$") {
