@@ -1,12 +1,13 @@
+$Today_date = (get-date -format "yyyy-MM-dd dddd")
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 	Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
-	$Project_History="$Profile_Location\History.md"
 }
-$Today_date = (get-date -format "yyyy-MM-dd dddd")
-$Today_Note = "$PSScriptRoot\logs\$Today_date.md"
-$daProfile = "$Today_Note"
+$Project_History="$Profile_Location\Project_Loading_History.md"
+$Today_Note = "$Diary_Location\$Today_date.md"
 $Project = $Project_Location
+# Write-Host ---------------------------------------------------------------- Finish Variable setting
+$daProfile = "$Today_Note"
 if (!(Test-Path $daProfile)) {New-item $daProfile -type file}
 Function Search-Result() {
     IF ($SearchFile.Count -gt 1) {
