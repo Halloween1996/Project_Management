@@ -125,6 +125,11 @@ Do
 		Get-ChildItem -Path $Project
 		Continue
 	}
+	if ($User_input.StartsWith('ls ')) {
+		$ToSearch = $User_input.substring(3)
+		Get-ChildItem -Path $Project\*$ToSearch*
+		Continue
+	}
 	if ($User_input -eq "s") {
 		Invoke-Item $Project
 		Continue
@@ -159,8 +164,18 @@ Do
 	}
 	if ($User_input.StartsWith('\')) {
 		$ToSearch = $User_input.substring(1)
+		if ($ToSearch.StartsWith('\')) {
+			$Profile_Search=$ToSearch.substring(1)
+			$SearchFile=(Get-ChildItem -Path "$Profile_Location\*$Profile_Search*" -Recurse).FullName
+			Search-Result("$SearchFile")
+			$daProfile="$dafile"
+			Clear-Host
+			Write-Host "Profile set as $Project"
+			readla(8)
+			Continue
+		}
 		If ($Project -ne $Project_Location) {
-			$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*" -Recurse -Directory).FullName
+			$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*" -Directory).FullName
 			Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
 		} else {
 			$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
@@ -199,5 +214,4 @@ Do
 		Add-Content -LiteralPath "$daProFile" -value "$Today_date $Nowtime`: $User_input"
 	}
 	Add-Content -LiteralPath "$Today_Note" -value "$Today_date $Nowtime`: $User_input"
-} until ($User_input -eq "hr")
-Write-Host "You're exit the appended edit mode now"
+} until ($User_input -eq "wq")
