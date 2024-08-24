@@ -1,10 +1,11 @@
 $Today_date = (get-date -format "yyyy-MM-dd dddd")
+$Today_Month = (get-date -format "yyyy-MM")
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 	Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
 }
 $Project_History="$Profile_Location\Project_Loading_History.md"
-$Today_Note = "$Diary_Location\$Today_date.md"
+$Today_Note = "$Diary_Location\$Today_Month.md"
 $Project = $Project_Location
 # Write-Host ---------------------------------------------------------------- Finish Variable setting
 $daProfile = "$Today_Note"
@@ -86,10 +87,10 @@ exit
 # Write-Host "2. Type Anything to Leave your message to the profile."
 # Write-Host "3. If you want to search specific keyword from the Profile, Begin with Question Mark(?)"
 # Write-Host "4. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded"
-# Write-Host "5. cls, ls, s are the special manipulating commands."
-Write-Host "Hi, Today is $Today_date, and the Last 10 messages are:"
+# Write-Host "5. cls, ls, s are the special manipulating commands. Don't Type them alone."
+Write-Host "Hi, Today is $Today_date"
 Write-Host --------------------------------------------------------------------------------
-readla (10)
+readla (30)
 Do
 {
 	$Nowtime = get-date -format "hh:mm:ss tt"
@@ -165,12 +166,18 @@ Do
 	if ($User_input.StartsWith('\')) {
 		$ToSearch = $User_input.substring(1)
 		if ($ToSearch.StartsWith('\')) {
+			Set-Variable -Name dirprofile -Value $daProfile
 			$Profile_Search=$ToSearch.substring(1)
 			$SearchFile=(Get-ChildItem -Path "$Profile_Location\*$Profile_Search*" -Recurse).FullName
 			Search-Result("$SearchFile")
 			$daProfile="$dafile"
 			Clear-Host
-			Write-Host "Profile set as $Project"
+			If ($Project -eq $Project_Location) {
+				$Project = $PWD
+				Write-Host "Project set as $Project"
+			}
+			Write-Host "Profile set as $daProfile"
+			Write-Host "For Switch back, Set daProfile as dirprofile."
 			readla(8)
 			Continue
 		}
