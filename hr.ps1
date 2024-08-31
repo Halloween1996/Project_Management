@@ -101,12 +101,12 @@ Do
 	$NowDateTime = get-date -format "yyyyMMdd_HH:mm:ss"
 	if ($User_input -eq "") {
 		Clear-Host
-		readla (12)
+		readla (30)
 		Continue
 	}
 	if ($User_input -eq "cls") {
-		$Project = $Project_Location
-		$daProfile = "$Today_Note"
+		$Project=$Project_Location
+		$daProfile="$Today_Note"
 		Clear-Variable -Name daProfile_Name
 		Continue
 	}
@@ -189,11 +189,21 @@ Do
 		}
 		Search-Result("$SearchFile")
 		$daProfile="$dafile\profile.md"
-		$Project=$daFile
-		Clear-Host
-		Write-Host "Now The Project is $Project"
-		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
-		readla(8)
+		If (Test-Path "$dafile\profile.md") {
+			$Project=$daFile
+			Clear-Host
+			Write-Host "Now The Project is $Project"
+			Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
+			readla(8)
+		} else {
+			Get-ChildItem -Path $Project
+			Write-Host $daProfile is not a Profile. Create a profile.md?
+			$ToSearch=Read-Host "Type 'y' and Enter to Create it"
+			if ($ToSearch -eq "y") {
+				New-item -Path "$dafile" -Name profile.md
+			}
+			$daProfile="$Today_Note"
+		}
 		Continue
 	}
 	if ($User_input.StartsWith('"')) {

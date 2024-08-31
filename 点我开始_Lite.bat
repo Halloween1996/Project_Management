@@ -34,10 +34,13 @@ echo $Projects_Link_File="!Project_Location!\!Profile_Folder_Name!\Projects_Link
 echo $Push_Pull_Logging="!Project_Location!\!Profile_Folder_Name!\Moving_History.md">>%cd%\Project_variable.ini
 echo $Quick_Luanching_Dictionary="!Project_Location!\!Profile_Folder_Name!\Website.md">>%cd%\Project_variable.ini
 echo .lnk >>%cd%\Sort_bank.ini
+echo .png .jpg .jpeg .heif^|Picture>>%cd%\Sort_bank.ini
+echo .pdf .csv .md ^|Documents>>%cd%\Sort_bank.ini
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Projects_Link.md"
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Moving_History.md"
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Website.md"
-Set "Searchable_Folder_Location_Count=0"
+Set "Searchable_Folder_Location_Count=1"
+Echo $Folder_Location_!Searchable_Folder_Location_Count!="%USERPROFILE%\Downloads"
 Echo Now, you are Setting up Searchable Folder Location, you may Set up mutilple Searchable Folder Location by just adding out the number in the Variable Name. 
 echo when you are finish, don't type anything, just press the Enter.
 :Searchable
