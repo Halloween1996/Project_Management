@@ -18,6 +18,10 @@ Function Search-Result() {
     		Write-host "No.$number "$SearchFile[$i]
     	}
     	$chosen = read-host "You chose No."
+        if ($chosen -eq 0) {
+            Write-Host "Operation cancelled."
+            return
+        }
     	$chosen = $chosen - 1
     	Set-Variable -Name dafile -Scope global -Value $SearchFile[$chosen]
     } else {
@@ -132,7 +136,7 @@ Do
 		Continue
 	}
 	if ($User_input -eq "s") {
-		Invoke-Item $Project
+		Start-Process $Project
 		Continue
 	}
 	if ($User_input.StartsWith('s ')) {
@@ -140,7 +144,7 @@ Do
 		$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*").FullName
 		if (!$null -eq $SearchFile) {
 			Search-Result("$SearchFile")
-			Invoke-Item $daFile
+			Start-Process $daFile
 		} else {
 			Write-Host "Searching $ToSearch by File..."
 			Search-File ($ToSearch)
@@ -188,21 +192,19 @@ Do
 			$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
 		}
 		Search-Result("$SearchFile")
-		$daProfile="$dafile\profile.md"
-		If (Test-Path "$dafile\profile.md") {
+		If (Test-Path "$dafile" -PathType Container) {
+			$daProfile="$dafile\Folder_Profile.md"
+			if (!(Test-Path $daProfile)) {
+				Write-Host "$daProfile did not found. I Create one for you."
+				New-item -Path "$dafile" -Name Folder_Profile.md
+				(Get-ChildItem $daProfile).attributes="Hidden"
+			}
 			$Project=$daFile
-			Clear-Host
 			Write-Host "Now The Project is $Project"
 			Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
 			readla(8)
 		} else {
 			Get-ChildItem -Path $Project
-			Write-Host $daProfile is not a Profile. Create a profile.md?
-			$ToSearch=Read-Host "Type 'y' and Enter to Create it"
-			if ($ToSearch -eq "y") {
-				New-item -Path "$dafile" -Name profile.md
-			}
-			$daProfile="$Today_Note"
 		}
 		Continue
 	}
