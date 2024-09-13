@@ -2,12 +2,13 @@ $Today_date = (get-date -format "yyyy-MM-dd dddd")
 $Today_Month = (get-date -format "yyyy-MM")
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
-	Get-Content $Profile_Location\Searching_Variable_List.md|Invoke-Expression
 }
+$WebSites_Content = Get-Content "$Quick_Luanching_Dictionary"
+$Folder_Locations = Get-Content "$Profile_Location\Searching_Variable_List1.md"
 $Project_History="$Profile_Location\Project_Loading_History.md"
 $Today_Note = "$Diary_Location\$Today_Month.md"
 $Project = $Project_Location
-# Write-Host ---------------------------------------------------------------- Finish Variable setting
+# Write-Host ----------------------------- Finish Variable Initialization ----------------------------
 $daProfile = "$Today_Note"
 if (!(Test-Path $daProfile)) {New-item $daProfile -type file}
 Function Search-Result() {
@@ -47,28 +48,43 @@ Function Format-FileSize() {
 		Else {""}
 	}
 Function Search-File ($param) {
-	[int]$Searching_Location_Index_Num=1
-	while (Get-Variable Folder_Location_$Searching_Location_Index_Num -erroraction 'silentlycontinue') {
-		$Folder_Location = (Get-Variable Folder_Location_$Searching_Location_Index_Num -ValueOnly)
-		$ddc = Get-ChildItem "$Folder_Location\*$param*" -Name
-		foreach($line in $ddc) {
-			$n++
-			Set-Variable -Name abc_$n -Scope script -value "$Folder_Location\$line"
-			Write-Host [$n] $line
+	$n = 0
+	$Candidates = @()
+
+	# 搜索WebSites.md文件内容
+	$WebSites_Content | ForEach-Object {
+		if ($_ -match $param) {
+			$url = [regex]::Match($_, '\((.*?)\)').Groups[1].Value
+			if ($url) {
+				$Candidates += [PSCustomObject]@{ Index = ++$n; Path = $url; Display = $url }
+				Write-Host "[$n] $url"
+			}
 		}
-		$Searching_Location_Index_Num++
 	}
-	# Write-Host "Does not exist Search_Folder_Location_$Searching_Location_Index_Num++"
-	# Determinate Result
+
+    # 搜索文件夹中的文件
+    foreach ($Folder_Location in $Folder_Locations) {
+        $ddc = Get-ChildItem "$Folder_Location\*$param*" -File
+        foreach ($file in $ddc) {
+            $Candidates += [PSCustomObject]@{ Index = ++$n; Path = $file.FullName; Display = "$($file.Name)" }
+            Write-Host "[$n] $Folder_Location\$($file.Name)"
+        }
+    }
+	# 确定结果
 	if ($n -eq 0) {
 		Write-Host "No Result Found"
-		Exit
+		Return
 	}
-	if ($n -gt 1) {
-		$chose = Read-Host "What is your chose?"
-		$abc_1 = Get-Variable abc_$chose -ValueOnly
+	if ($n -eq 1) {
+		Start-Process $Candidates[0].Path
+	} else {
+		$chose = Read-Host "What is your choice? (Enter 0 to cancel)"
+		if ($chose -eq 0) {
+			Write-Host "Operation cancelled."
+			Return
+		}
+		Start-Process $Candidates[$chose - 1].Path
 	}
-	Start-Process "$abc_1"
 }
 function Read-Historical {
     $lines = Get-Content -Path "$Project_History" -Tail 10
