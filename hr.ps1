@@ -7,7 +7,7 @@ $WebSites_Content = Get-Content "$Quick_Luanching_Dictionary"
 $Folder_Locations = Get-Content "$Profile_Location\Searching_Variable_List1.md"
 $Project_History="$Profile_Location\Project_Loading_History.md"
 $Today_Note = "$Diary_Location\$Today_Month.md"
-$Project = $Project_Location
+$pj = $Project_Location
 # Write-Host ----------------------------- Finish Variable Initialization ----------------------------
 $daProfile = "$Today_Note"
 if (!(Test-Path $daProfile)) {New-item $daProfile -type file}
@@ -114,7 +114,7 @@ readla (30)
 Do
 {
 	$Nowtime = get-date -format "hh:mm:ss tt"
-	if ($Project -ne $Project_Location) {Write-Host $Project}
+	if ($pj -ne $Project_Location) {Write-Host "Located Folder: $pj"}
 	if ($daProfile -ne "$Today_Note") {$daProfile_Name=($daProfile -split '\\')[-2]}
 	Write-Host "                         [$Nowtime]   $daProfile_Name`n"
 	$User_input=Read-Host
@@ -125,7 +125,7 @@ Do
 		Continue
 	}
 	if ($User_input -eq "cls") {
-		$Project=$Project_Location
+		$pj=$Project_Location
 		$daProfile="$Today_Note"
 		Clear-Variable -Name daProfile_Name
 		Continue
@@ -135,29 +135,31 @@ Do
 		Continue
 	}
 	if ($User_input.StartsWith('cl ')) {
+		Read-Historical
 		$Num=$User_input.substring(3)
 		$fullparts = Get-Variable -Name "cl$Num" -ValueOnly
 		$fullparts = $fullparts.Split('=')
-		$Project = $fullparts[1]
-		Write-Host "Project has change to: $project"
+		$pj = $fullparts[1]
+		Write-Host "-----------------------------"
+		Write-Host "Project has change to: $pj"
 		continue
 	}
 	if ($User_input -eq "ls") {
-		Get-ChildItem -Path $Project
+		Get-ChildItem -Path $pj
 		Continue
 	}
 	if ($User_input.StartsWith('ls ')) {
 		$ToSearch = $User_input.substring(3)
-		Get-ChildItem -Path $Project\*$ToSearch*
+		Get-ChildItem -Path $pj\*$ToSearch*
 		Continue
 	}
 	if ($User_input -eq "s") {
-		Start-Process $Project
+		Start-Process $pj
 		Continue
 	}
 	if ($User_input.StartsWith('s ')) {
 		$ToSearch = $User_input.substring(2)
-		$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*").FullName
+		$SearchFile=(Get-ChildItem -Path "$pj\*$ToSearch*").FullName
 		if (!$null -eq $SearchFile) {
 			Search-Result("$SearchFile")
 			Start-Process $daFile
@@ -192,17 +194,17 @@ Do
 			Search-Result("$SearchFile")
 			$daProfile="$dafile"
 			Clear-Host
-			If ($Project -eq $Project_Location) {
-				$Project = $PWD
-				Write-Host "Project set as $Project"
+			If ($pj -eq $Project_Location) {
+				$pj = $PWD
+				Write-Host "Project set as $pj"
 			}
 			Write-Host "Profile set as $daProfile"
 			Write-Host "For Switch back, Set daProfile as dirprofile."
 			readla(8)
 			Continue
 		}
-		If ($Project -ne $Project_Location) {
-			$SearchFile=(Get-ChildItem -Path "$Project\*$ToSearch*" -Directory).FullName
+		If ($pj -ne $Project_Location) {
+			$SearchFile=(Get-ChildItem -Path "$pj\*$ToSearch*" -Directory).FullName
 			Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
 		} else {
 			$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
@@ -215,12 +217,12 @@ Do
 				New-item -Path "$dafile" -Name Folder_Profile.md
 				(Get-ChildItem $daProfile).attributes="Hidden"
 			}
-			$Project=$daFile
-			Write-Host "Now The Project is $Project"
-			Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
+			$pj=$daFile
+			Write-Host "Now The Project is $pj"
+			Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$pj"
 			readla(8)
 		} else {
-			Get-ChildItem -Path $Project
+			Get-ChildItem -Path $pj
 		}
 		Continue
 	}
@@ -228,24 +230,24 @@ Do
 		$User_input = $User_input.Replace("`"","")
     }
 	if (Test-Path -LiteralPath $User_input -PathType Container) {
-		$Project=$User_input
-		Write-host "Now, The Project is $Project"
-		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$Project"
+		$pj=$User_input
+		Write-host "Now, The Project is $pj"
+		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$pj"
 		Continue
 	}
 	if (Test-Path -LiteralPath $User_input -PathType Leaf) {
 		$Toward_Object_Name=($User_Input -split '\\')[-1]
 		$File_Size = Format-FileSize((Get-Item $User_Input).Length)
-		Move-Item -LiteralPath $User_Input -Destination $Project
-		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $Project"
-		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $Project"
+		Move-Item -LiteralPath $User_Input -Destination $pj
+		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $pj"
+		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $pj"
 		Continue
 	}
     if ($User_input -match "^\d+$") {
         readla ($User_input)
 		Continue
     }
-    If ($Project -ne $Project_Location) {
+    If ($pj -ne $Project_Location) {
 		Add-Content -LiteralPath "$daProFile" -value "$Today_date $Nowtime`: $User_input"
 	}
 	Add-Content -LiteralPath "$Today_Note" -value "$Today_date $Nowtime`: $User_input"
