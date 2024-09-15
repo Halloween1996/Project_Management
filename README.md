@@ -26,11 +26,15 @@
 那么这个项目与GTD模型有什么联系呢? 当然是..."管理要执行的项目"这本身也是一种要执行的行动啦!
 
 ## 本项目的现况
+
 如图所示, 现在基本上让hr.ps1接管一切了. 
+![](https://github.com/Halloween1996/Project_Management/blob/751e04e49f34fb2cbf76871e17ac07f2415259f9/IMG/2024_9%E6%9C%88_PJM%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0%E8%B7%AF%E7%BA%BF.png)
+
 偶尔在几个项目目录里加个sort.txt, 然后让a.ps1按sort.txt分类一下.
 push.ps1和pull.ps1则是和映射到本地的远程服务器同步用的工具. push.ps1 是把Source文件夹的东西复制一份并推送到mirror文件夹. 而pull.ps1则相反. 是定位mirror文件夹, 然后指定的文件夹, 复制所有30天内创建过的文件.
 s.ps1和以往一样, 负责在指定的几个文件夹, 按照用户的输入进行搜索, 提供选项并打开用户指定的文件或文件夹.
-
+最新的项目计划如下:
+![](https://github.com/Halloween1996/Project_Management/blob/751e04e49f34fb2cbf76871e17ac07f2415259f9/IMG/2024_08-20-PJM%E7%BB%93%E6%9E%84%E8%A7%84%E5%88%92.png)
 ## 本项目的过往
 
 把一个储存特定行动的文件夹（例如我有一个文件夹，里面的文件都是与我要写的论文的相关内容）叫做Project(项目)
