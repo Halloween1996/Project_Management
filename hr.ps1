@@ -1,254 +1,211 @@
-$Today_date = (get-date -format "yyyy-MM-dd dddd")
-$Today_Month = (get-date -format "yyyy-MM")
+# 初始化文档位置变量
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 }
-$WebSites_Content = Get-Content "$Quick_Luanching_Dictionary"
-$Folder_Locations = Get-Content "$Profile_Location\Searching_Variable_List1.md"
-$Project_History="$Profile_Location\Project_Loading_History.md"
+$websites_List = "$Profile_Location\Websites.md"
+$searching_Folder_List = "$Profile_Location\Searching_Variable_List.md"
+# 初始化变量
+$Today_Month = (Get-Date -Format "yyyy-MM")
 $Today_Note = "$Diary_Location\$Today_Month.md"
+$Dir_Profile = $Today_Note
 $pj = $Project_Location
-# Write-Host ----------------------------- Finish Variable Initialization ----------------------------
-$daProfile = "$Today_Note"
-if (!(Test-Path $daProfile)) {New-item $daProfile -type file}
-Function Search-Result() {
-    IF ($SearchFile.Count -gt 1) {
-    	for($i=0;$i -lt $SearchFile.Count; $i++) {
-    		$number= 1 + $i
-    		Set-Variable -Name path$number -Value $SearchFile[$i]
-    		Write-host "No.$number "$SearchFile[$i]
-    	}
-    	$chosen = read-host "You chose No."
-        if ($chosen -eq 0) {
-            Write-Host "Operation cancelled."
-            return
-        }
-    	$chosen = $chosen - 1
-    	Set-Variable -Name dafile -Scope global -Value $SearchFile[$chosen]
-    } else {
-    	Set-Variable -Name dafile -Scope global -Value $SearchFile
+$Global:daProfile = $null
+
+# 待调用函数
+Function Read-LastLines {
+    Param ($filePath, $lines = 20)
+    [int]$n = 0
+    foreach ($line in Get-Content -Path $filePath -Tail $lines) {
+        $n++
+        Write-Host "`r"
+        Write-Host "$n : $line"
     }
+    Write-Host "--------------------------------------------------------------------------------"
 }
-Function readla ($param) {
-	[int]$n = 0
-	foreach($line in Get-Content -LiteralPath "$daProfile" -tail $param) {
-		$n++
-		Write-Host "`r"
-		Write-Host "$n : "$line
-	}
-	Write-Host --------------------------------------------------------------------------------
+Function Search-Content {
+    Param ($filePath, $pattern)
+    Select-String -Path $filePath -Pattern $pattern
+}
+Function Search-Result {
+    Param ($searchPath, $pattern = $null)
+    if ($pattern) {
+        $results = Get-ChildItem -Path $searchPath -Filter "*$pattern*"
+    } else {
+        $results = $searchPath
+    }
+    if ($results.Count -gt 1) {
+        for ($i = 0; $i -lt $results.Count; $i++) {
+            Write-Host "$($i + 1): $($results[$i].FullName)"
+        }
+        $chosen = Read-Host "You chose No. or enter keyword"
+        if ($chosen -match "^\d+$") {
+            if ($chosen -eq 0) {
+                Write-Host "Operation cancelled."
+                return $null
+            }
+            return $results[$chosen - 1].FullName
+        } else {
+            $filteredResults = $results | Where-Object { $_.FullName -like "*$chosen*" }
+            if ($filteredResults.Count -eq 1) {
+                return $filteredResults[0].FullName
+            } elseif ($filteredResults.Count -gt 1) {
+                for ($i = 0; $i -lt $filteredResults.Count; $i++) {
+                    Write-Host "$($i + 1): $($filteredResults[$i].FullName)"
+                }
+                $chosen = Read-Host "You chose No."
+                if ($chosen -eq 0) {
+                    Write-Host "Operation cancelled."
+                    return $null
+                }
+                return $filteredResults[$chosen - 1].FullName
+            } else {
+                Write-Host "No Matching File`(s`) or Folder`(s`) Found."
+                return $null
+            }
+        }
+    } elseif ($results.Count -eq 1) {
+        return $results[0].FullName
+    } else {
+        Write-Host "No Matching File`(s`) or Folder`(s`) Found."
+        return $null
+    }
 }
 Function Format-FileSize() {
 	Param ([int]$size)
-		If ($size -gt 1TB) {[string]::Format("{0:0.00} TB", $size / 1TB)}
-		ElseIf ($size -gt 1GB) {[string]::Format("{0:0.00} GB", $size / 1GB)}
-		ElseIf ($size -gt 1MB) {[string]::Format("{0:0.00} MB", $size / 1MB)}
+		If ($size -gt 1MB) {[string]::Format("{0:0.00} MB", $size / 1MB)}
 		ElseIf ($size -gt 1KB) {[string]::Format("{0:0.00} kB", $size / 1KB)}
 		ElseIf ($size -gt 0) {[string]::Format("{0:0.00} B", $size)}
 		Else {""}
-	}
-Function Search-File ($param) {
-	$n = 0
-	$Candidates = @()
+}
 
-	# 搜索WebSites.md文件内容
-	$WebSites_Content | ForEach-Object {
-		if ($_ -match $param) {
-			$url = [regex]::Match($_, '\((.*?)\)').Groups[1].Value
-			if ($url) {
-				$Candidates += [PSCustomObject]@{ Index = ++$n; Path = $url; Display = $url }
-				Write-Host "[$n] $url"
-			}
-		}
-	}
+# 主程序
+$dayOfYear = Get-Date -UFormat "%j"
+Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") $(get-date -uformat %V) "week(s)"
+Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
+Read-LastLines -filePath $Today_Note -lines 10
+Do {
+    Write-Host "    "
+    $User_input = Read-Host "$(get-date -format "ddd h:mm tt")"
+    $User_Submitted_Time = get-date -format "yyyyMMdd dddd_HH:mm:ss"
 
-    # 搜索文件夹中的文件
-    foreach ($Folder_Location in $Folder_Locations) {
-        $ddc = Get-ChildItem "$Folder_Location\*$param*" -File
-        foreach ($file in $ddc) {
-            $Candidates += [PSCustomObject]@{ Index = ++$n; Path = $file.FullName; Display = "$($file.Name)" }
-            Write-Host "[$n] $Folder_Location\$($file.Name)"
+    # 特定动作
+    if ($User_input -eq ";;") {
+        if ("$daProfile" -eq "$pj\Folder_Profile.md") {
+            $daProfile = $Dir_Profile
+        } else {
+            $Dir_Profile = $daProfile
+            $daProfile = "$pj\Folder_Profile.md"
         }
+        Write-Host "Now the Profile is $daProfile"
+        Continue
     }
-	# 确定结果
-	if ($n -eq 0) {
-		Write-Host "No Result Found"
-		Return
-	}
-	if ($n -eq 1) {
-		Start-Process $Candidates[0].Path
-	} else {
-		$chose = Read-Host "What is your choice? (Enter 0 to cancel)"
-		if ($chose -eq 0) {
-			Write-Host "Operation cancelled."
-			Return
-		}
-		Start-Process $Candidates[$chose - 1].Path
-	}
-}
-function Read-Historical {
-    $lines = Get-Content -Path "$Project_History" -Tail 10
-    for ($i = 0; $i -lt $lines.Length; $i++) {
-        Set-Variable -Name "cl$($i + 1)" -Value $lines[$i] -Scope Global
-		Write-Host $($i+1) $lines[$i]
-    }
-}
-if ($args) {
-    If ($args -match "^\d+$") {
-        $Number=$args[0]
-        readla ($Number)
-    } else {
-        $Nowtime = get-date -format "yyyy-MM-dd dddd HH:mm:ss tt"
-        Add-Content -LiteralPath "$Today_Note" -value "$Today_date $Nowtime`: $args"
-    }
-exit
-}
-# Write-Host "1. Type Any Number to Review how many last messages that you have leaved to the profile. "
-# Write-Host "2. Type Anything to Leave your message to the profile."
-# Write-Host "3. If you want to search specific keyword from the Profile, Begin with Question Mark(?)"
-# Write-Host "4. But, If your input begin with a colon(:), your message would EXECUTED as a command rather than been recorded"
-# Write-Host "5. cls, ls, s are the special manipulating commands. Don't Type them alone."
-Write-Host "Hi, Today is $Today_date"
-Write-Host --------------------------------------------------------------------------------
-readla (30)
-Do
-{
-	$Nowtime = get-date -format "hh:mm:ss tt"
-	if ($pj -ne $Project_Location) {Write-Host "Located Folder: $pj"}
-	if ($daProfile -ne "$Today_Note") {$daProfile_Name=($daProfile -split '\\')[-2]}
-	Write-Host "                         [$Nowtime]   $daProfile_Name`n"
-	$User_input=Read-Host
-	$NowDateTime = get-date -format "yyyyMMdd_HH:mm:ss"
-	if ($User_input -eq "") {
+    if ($User_input -eq "") {
 		Clear-Host
-		readla (30)
+        $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
+        Write-host " $fileToRead has writen:"
+		Read-LastLines -filePath $fileToRead -lines 10
 		Continue
-	}
-	if ($User_input -eq "cls") {
-		$pj=$Project_Location
-		$daProfile="$Today_Note"
-		Clear-Variable -Name daProfile_Name
-		Continue
-	}
-	if ($User_input -eq "cl") {
-		Read-Historical
-		Continue
-	}
-	if ($User_input.StartsWith('cl ')) {
-		Read-Historical
-		$Num=$User_input.substring(3)
-		$fullparts = Get-Variable -Name "cl$Num" -ValueOnly
-		$fullparts = $fullparts.Split('=')
-		$pj = $fullparts[1]
-		Write-Host "-----------------------------"
-		Write-Host "Project has change to: $pj"
-		continue
-	}
-	if ($User_input -eq "ls") {
-		Get-ChildItem -Path $pj
-		Continue
-	}
-	if ($User_input.StartsWith('ls ')) {
-		$ToSearch = $User_input.substring(3)
-		Get-ChildItem -Path $pj\*$ToSearch*
-		Continue
-	}
-	if ($User_input -eq "s") {
-		Start-Process $pj
-		Continue
-	}
-	if ($User_input.StartsWith('s ')) {
-		$ToSearch = $User_input.substring(2)
-		$SearchFile=(Get-ChildItem -Path "$pj\*$ToSearch*").FullName
-		if (!$null -eq $SearchFile) {
-			Search-Result("$SearchFile")
-			Start-Process $daFile
-		} else {
-			Write-Host "Searching $ToSearch by File..."
-			Search-File ($ToSearch)
-		}
-		Continue
-	}
-	if ($User_input.StartsWith(':')) {
-		$temp_command = $User_input.substring(1)
-		Invoke-Expression $temp_command
-		continue
-	}
-	if ($User_input.StartsWith('?')) {
-		$Todone_Notes = $User_input.substring(1)
-		$SearchFile=(Select-String -SimpleMatch -LiteralPath "$daProFile" -Pattern "$ToDone_Notes").line
-		Write-host ----------------------------
-		$SearchFile|Write-Host
-		Continue
-	}
-	if ($User_input.StartsWith('#')) {
-		Add-Content -LiteralPath "$daProFile" -value "$User_input"
-		Continue
-	}
-	if ($User_input.StartsWith('\')) {
-		$ToSearch = $User_input.substring(1)
-		if ($ToSearch.StartsWith('\')) {
-			Set-Variable -Name dirprofile -Value $daProfile
-			$Profile_Search=$ToSearch.substring(1)
-			$SearchFile=(Get-ChildItem -Path "$Profile_Location\*$Profile_Search*" -Recurse).FullName
-			Search-Result("$SearchFile")
-			$daProfile="$dafile"
-			Clear-Host
-			If ($pj -eq $Project_Location) {
-				$pj = $PWD
-				Write-Host "Project set as $pj"
-			}
-			Write-Host "Profile set as $daProfile"
-			Write-Host "For Switch back, Set daProfile as dirprofile."
-			readla(8)
-			Continue
-		}
-		If ($pj -ne $Project_Location) {
-			$SearchFile=(Get-ChildItem -Path "$pj\*$ToSearch*" -Directory).FullName
-			Add-Content -LiteralPath "$Today_Note" -value "located Profile from $daFile"
-		} else {
-			$SearchFile=(Get-ChildItem -Path "$Project_Location\*$ToSearch*" -Directory).FullName
-		}
-		Search-Result("$SearchFile")
-		If (Test-Path "$dafile" -PathType Container) {
-			$daProfile="$dafile\Folder_Profile.md"
-			if (!(Test-Path $daProfile)) {
-				Write-Host "$daProfile did not found. I Create one for you."
-				New-item -Path "$dafile" -Name Folder_Profile.md
-				(Get-ChildItem $daProfile).attributes="Hidden"
-			}
-			$pj=$daFile
-			Write-Host "Now The Project is $pj"
-			Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$pj"
-			readla(8)
-		} else {
-			Get-ChildItem -Path $pj
-		}
-		Continue
-	}
-	if ($User_input.StartsWith('"')) {
-		$User_input = $User_input.Replace("`"","")
+	} elseif ($User_input -match "^\d+$") {
+        $linesToRead = [int]$User_input
+        $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
+        $fileToRead
+        Read-LastLines -filePath $fileToRead -lines $linesToRead
+        Continue
+    } elseif ($User_input.StartsWith('?')) {
+        $pattern = $User_input.Substring(1)
+        $fileToSearch = if ($daProfile) { $daProfile } else { $Today_Note }
+        Search-Content -filePath $fileToSearch -pattern $pattern
+        Continue
+    } elseif ($User_input.StartsWith('#')) {
+        Add-Content -Path $Today_Note -Value $User_input
+        if ($daProfile) {
+            Add-Content -Path $daProfile -Value $User_input
+        }
+        Continue
+    } elseif ($User_input.StartsWith(':')) {
+        $command = $User_input.Substring(1)
+        Invoke-Expression $command
+        Continue
+    } elseif ($User_input.StartsWith('\\')) {
+        $Profile_pattern = $User_input.Substring(2)
+        $newProfile = Search-Result -searchPath $Profile_Location -pattern $Profile_pattern
+        if ($newProfile) {
+            $Dir_Profile = $daProfile
+            $daProfile = $newProfile
+            Write-Host "Profile set as $daProfile"
+        }
+        Continue
+    } elseif ($User_input.StartsWith('\')) {
+        $pattern = $User_input.Substring(1)
+        $newPath = Search-Result -searchPath $pj -pattern $pattern
+        if ($newPath) {
+            $Global:pj = $newPath
+            $pj = $newPath
+            $daProfile = "$Global:pj\Folder_Profile.md"
+            if (-not (Test-Path $daProfile)) {
+                New-Item -Path $daProfile -ItemType File
+                (Get-Item $daProfile).Attributes = "Hidden"
+            }
+            Write-Host "Project set as $Global:pj"
+            Write-Host "Profile set as $daProfile"
+        } else {
+            Write-Host "----------------------------------------------"
+            Write-Host "Listing all under $pj :"
+            Get-ChildItem $pj
+        }
+        Continue
+    } elseif ($User_input.StartsWith('s ')) {
+        $pattern = $User_input.Substring(2)
+        $folders = Get-Content -Path $searching_Folder_List
+        $matchingFiles = @()
+        foreach ($folder in $folders) {
+            $matchingFiles += Get-ChildItem -Path $folder -Filter "*$pattern*"
+        }
+        # 搜索网址
+        Get-Content $websites_List | ForEach-Object {
+            if ($_ -match $pattern) {
+                $n++
+                Write-Host "$n $_"
+            }
+        }
+        $newPath = Search-Result -searchPath $matchingFiles
+        if ($newPath) {
+            Start-Process $newPath
+        }
+        Continue
     }
-	if (Test-Path -LiteralPath $User_input -PathType Container) {
-		$pj=$User_input
-		Write-host "Now, The Project is $pj"
-		Add-Content -LiteralPath "$Project_History" -value "$NowDateTime=$pj"
-		Continue
-	}
-	if (Test-Path -LiteralPath $User_input -PathType Leaf) {
-		$Toward_Object_Name=($User_Input -split '\\')[-1]
-		$File_Size = Format-FileSize((Get-Item $User_Input).Length)
-		Move-Item -LiteralPath $User_Input -Destination $pj
-		Add-Content -LiteralPath "$daProFile" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $pj"
-		Add-Content -LiteralPath "$Today_Note" -value "$Nowtime`: **[$Toward_Object_Name]($User_Input) `($File_Size`)**  has moved to $pj"
-		Continue
-	}
-    if ($User_input -match "^\d+$") {
-        readla ($User_input)
-		Continue
+
+    # 处理双引号开头的输入
+    if ($User_input.StartsWith('"')) {
+        $User_input = $User_input.Trim('"')
     }
-    If ($pj -ne $Project_Location) {
-		Add-Content -LiteralPath "$daProFile" -value "$Today_date $Nowtime`: $User_input"
-	}
-	Add-Content -LiteralPath "$Today_Note" -value "$Today_date $Nowtime`: $User_input"
-} until ($User_input -eq "wq")
+
+    # 判断是否为文件路径
+    if (Test-Path -LiteralPath $User_input -PathType Leaf) {
+        if ($Global:pj) {
+			$fileName = [System.IO.Path]::GetFileName($User_input)
+			$File_Size = Format-FileSize((Get-Item $User_Input).Length)
+            Move-Item -LiteralPath $User_input -Destination $Global:pj
+            Add-Content -Path $Today_Note -Value "$User_Submitted_Time : Moved file **$fileName `($File_Size`)** to $Global:pj"
+            if ($daProfile) {
+                Add-Content -Path $daProfile -Value "$User_Submitted_Time : Moved file **$fileName `($File_Size`)** to $Global:pj"
+            }
+        }
+        Continue
+    }
+
+    # 判断是否为文件夹路径
+    if (Test-Path -LiteralPath $User_input -PathType Container) {
+        $Global:pj = Resolve-Path -Path $User_input
+        $pj = Resolve-Path -Path $User_Input
+        Write-Host "Now, The Project is $Global:pj"
+        Get-ChildItem $pj
+        Continue
+    }
+
+    # 记录用户输入
+    Add-Content -Path $Today_Note -Value "$User_Submitted_Time : $User_input"
+    if ($daProfile) {
+        Add-Content -Path $daProfile -Value "$User_Submitted_Time : $User_input"
+    }
+} Until ($User_input -eq "wq")

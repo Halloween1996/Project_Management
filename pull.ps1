@@ -6,7 +6,7 @@ Get-ChildItem "$mirror"
 Do {
     $keywords = Read-Host "Please Enter the keywords"
     if ($keywords -eq "jkl;'") {
-        Set-Variable -Name "Target_Folder" -Value "$mirror"
+        Set-Variable -Name "Target_Folder" -Value "$Process"
 		break
     } elseif ($keywords -eq "..") {
         $Process = Split-Path -Path $Process -Parent
