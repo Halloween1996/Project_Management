@@ -22,6 +22,8 @@ if (Test-Path $configFile) {
         $line = $_.Trim()
         if ($line.StartsWith(";")) {
             $Exclude_Keywords += $line.Substring(1).Trim()
+        } elseif ($line.StartsWith("$")) {
+            Invoke-Expression $line
         } else {
             $Include_Keywords += $line
         }

@@ -17,7 +17,7 @@ Function Read-LastLines {
     [int]$n = 0
     foreach ($line in Get-Content -Path $filePath -Tail $lines) {
         $n++
-        Write-Host "`r"
+        Write-Host ""
         Write-Host "$n : $line"
     }
     Write-Host "--------------------------------------------------------------------------------"
@@ -82,8 +82,6 @@ Function Switch-Keywords {
     $replacements = @{
         "ls" = "Get-ChildItem"
         "ii" = "start-Process"
-        "ni" = "New-Item"
-        "md" = "mkdir"
         "cd" = "Set-Location"
         "cat" = "Get-Content"
         "cls" = "Clear-Host ; Set-variable -name pj -value $Project_Location"
@@ -104,7 +102,7 @@ Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") ", The" $(get-dat
 Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
 Read-LastLines -filePath $Today_Note -lines 10
 Do {
-    Write-Host "    "
+    Write-Host ""
     $User_input = Read-Host "$(get-date -format "ddd h:mm tt")"
     $User_Submitted_Time = get-date -format "yyyy-MM-dd dddd HH:mm:ss"
 
@@ -122,7 +120,12 @@ Do {
 
     # 特定动作
     if ($User_input -eq ";;") {
-        if ("$daProfile" -eq "$pj\Folder_Profile.md") {
+        if ($holding_Profile) {
+            $daProfile = $holding_Profile
+            Clear-Variable -Name holding_Profile
+            Write-Host "Swap back to" $daProfile
+            Continue
+        }elseif ($daProfile -like "*\Folder_Profile.md") {
             $daProfile = $Dir_Profile
         } else {
             $Dir_Profile = $daProfile
@@ -131,10 +134,18 @@ Do {
         Write-Host "Now the Profile is $daProfile"
         Continue
     }
+    if ($User_input -eq ";;;") {
+        if ("$daProfile" -ne "$Today_Note") {
+            $holding_Profile=$daProfile
+            $daProfile = $Today_Note
+            Write-Host "Profile has to be Withdrawed."
+        }
+        Continue
+    }
     if ($User_input -eq "") {
 		Clear-Host
         $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
-        Write-host " $fileToRead has writen:"
+        Write-host " $fileToRead has written:"
 		Read-LastLines -filePath $fileToRead -lines 10
 		Continue
 	} elseif ($User_input -match "^\d+$") {
@@ -182,7 +193,8 @@ Do {
             Write-Host "Profile set as $daProfile"
         } else {
             Write-Host "----------------------------------------------"
-            Write-Host "Listing all under $pj :"
+            Write-Host "under $pj :"
+            Write-Host "------------------------"
             Get-ChildItem $pj
         }
         Continue
