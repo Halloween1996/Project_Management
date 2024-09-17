@@ -77,16 +77,48 @@ Function Format-FileSize() {
 		ElseIf ($size -gt 0) {[string]::Format("{0:0.00} B", $size)}
 		Else {""}
 }
+Function Switch-Keywords {
+    Param ($Explain)
+    $replacements = @{
+        "ls" = "Get-ChildItem"
+        "ii" = "start-Process"
+        "ni" = "New-Item"
+        "md" = "mkdir"
+        "cd" = "Set-Location"
+        "cat" = "Get-Content"
+        "cls" = "Clear-Host ; Set-variable -name pj -value $Project_Location"
+    }
+
+    foreach ($keyword in $replacements.Keys) {
+        if ($Explain -match "^$keyword\b") {
+            $Explain = $Explain -replace "^$keyword\b", $replacements[$keyword]
+            $Has_Explain = $true
+        }
+    }
+    Return @($Explain, $Has_Explain)
+}
 
 # 主程序
 $dayOfYear = Get-Date -UFormat "%j"
-Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") $(get-date -uformat %V) "week(s)"
+Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") ", The" $(get-date -uformat %V) "th week"
 Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
 Read-LastLines -filePath $Today_Note -lines 10
 Do {
     Write-Host "    "
     $User_input = Read-Host "$(get-date -format "ddd h:mm tt")"
-    $User_Submitted_Time = get-date -format "yyyyMMdd dddd_HH:mm:ss"
+    $User_Submitted_Time = get-date -format "yyyy-MM-dd dddd HH:mm:ss"
+
+    # 替换关键词
+    $result = Switch-Keywords -Explain $User_input
+    $expandedInput = $result[0]
+    $Has_Explain = $result[1]
+
+    # 如果进行了字符替换，调用Invoke-Expression并跳过剩余部分
+    if ($Has_Explain) {
+        Invoke-Expression $expandedInput
+        $Has_Explain = $false
+        Continue
+    }
 
     # 特定动作
     if ($User_input -eq ";;") {
