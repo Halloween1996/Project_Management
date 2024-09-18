@@ -22,15 +22,12 @@ md "%Project_Location%\%Profile_Folder_Name%"
 md "%Project_Location%\%Achived_Repository_Name%"
 md "%Project_Location%\%Profile_Folder_Name%\Diary_logs"
 echo All set!
-Echo Projects_Link.md is a record file for linking a profile with those Projects, which is not under Project repository.
-Echo Moving_History.md is a default logging file. In Case pushing a File toward project via script but no profile is linked with the Project Folder.
 Echo --------------------
 Setlocal Enabledelayedexpansion
 echo $Project_Location="!Project_Location!">%cd%\Project_variable.ini
 echo $Profile_Location="!Project_Location!\!Profile_Folder_Name!">>%cd%\Project_variable.ini
 echo $Diary_Location="!Project_Location!\!Profile_Folder_Name!\Diary_logs">>%cd%\Project_variable.ini
 echo $Achived_Repository="!Project_Location!\!Achived_Repository_Name!">>%cd%\Project_variable.ini
-echo $Projects_Link_File="!Project_Location!\!Profile_Folder_Name!\Projects_Link.md">>%cd%\Project_variable.ini
 echo $Push_Pull_Logging="!Project_Location!\!Profile_Folder_Name!\Moving_History.md">>%cd%\Project_variable.ini
 echo $Quick_Luanching_Dictionary="!Project_Location!\!Profile_Folder_Name!\Website.md">>%cd%\Project_variable.ini
 echo .lnk >>%cd%\Sort_bank.ini
@@ -39,15 +36,14 @@ echo .pdf .csv .md ^|Documents>>%cd%\Sort_bank.ini
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Projects_Link.md"
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Moving_History.md"
 echo.>>"!Project_Location!\!Profile_Folder_Name!\Website.md"
-Set "Searchable_Folder_Location_Count=1"
-Echo $Folder_Location_!Searchable_Folder_Location_Count!="%USERPROFILE%\Downloads"
+Echo %USERPROFILE%\Downloads>>"!Project_Location!\!Profile_Folder_Name!\Searching_Variable_List.md"
 Echo Now, you are Setting up Searchable Folder Location, you may Set up mutilple Searchable Folder Location by just adding out the number in the Variable Name. 
 echo when you are finish, don't type anything, just press the Enter.
 :Searchable
 Set /a Searchable_Folder_Location_Count+=1
 Set /p Folder_Location=Folder_Location_!Searchable_Folder_Location_Count!:
 If Not "!Folder_Location!"=="" (
-    Echo $Folder_Location_!Searchable_Folder_Location_Count!="!Folder_Location!">>"!Project_Location!\!Profile_Folder_Name!\Searching_Variable_List.md"
+    Echo !Folder_Location!>>"!Project_Location!\!Profile_Folder_Name!\Searching_Variable_List.md"
     Set "Folder_Location="
 ) else (
     Echo All Done.

@@ -1,7 +1,8 @@
 param (
     [string]$Source = "C:\My\Business",
-    [string]$Mirror = "C:\testing"
-	[string]$Push_Pull_Logs = "C:\testing\Moving_History.md"
+    [string]$Mirror = "C:\testing",
+	[string]$Push_Pull_Logs = "C:\testing\Moving_History.md",
+    [int]$days_away=30
 )
 
 # "区域计划" 联动变量
@@ -69,38 +70,40 @@ $filesToProcess | ForEach-Object {
     # 构建目标文件路径
     $destinationPath = $_.FullName.Replace($Source, $Mirror)
     $destinationDir = Split-Path $destinationPath
-
-    # 创建目标文件夹（如果不存在）
-    if (-not (Test-Path $destinationDir -PathType Container)) {
-        New-Item -ItemType Directory -Path "$destinationDir"
-    }
-    # 检查目标文件是否存在
-    if (Test-Path $destinationPath -PathType Leaf) {
-        # 比较源文件和目标文件的哈希值
-        $sourceHash = Get-FileHashValue $_.FullName
-        $destinationHash = Get-FileHashValue $destinationPath
-        if ($sourceHash -ne $destinationHash) {
-            # 复制文件到目标文件夹
-            # 输出两个文件的最后修改时间
-            Write-Host "-----------------------------------------------------"
-            Write-Host "The one in" $Source ", its last modified:" $($_.LastWriteTime)
-            Write-Host "The one in" $Mirror ", its last modified:" $(Get-Item $destinationPath).LastWriteTime
-            Write-Host $_.FullName
-            Write-Host "This File exists in both folder, But the content may be vary. Copy to" $Mirror "or not?"
-            Copy-Item -Path $_.FullName -Destination $destinationPath -Confirm
+    # 如果文件的修改时间在xx天以内
+    if ($_.LastWriteTime -gt (Get-Date).AddDays(-$days_away)) {
+        # 创建目标文件夹（如果不存在）
+        if (-not (Test-Path $destinationDir -PathType Container)) {
+            New-Item -ItemType Directory -Path "$destinationDir"
+        }
+        # 检查目标文件是否存在
+        if (Test-Path $destinationPath -PathType Leaf) {
+            # 比较源文件和目标文件的哈希值
+            $sourceHash = Get-FileHashValue $_.FullName
+            $destinationHash = Get-FileHashValue $destinationPath
+            if ($sourceHash -ne $destinationHash) {
+                # 复制文件到目标文件夹
+                # 输出两个文件的最后修改时间
+                Write-Host "-----------------------------------------------------"
+                Write-Host "The one in" $Source ", its last modified:" $($_.LastWriteTime)
+                Write-Host "The one in" $Mirror ", its last modified:" $(Get-Item $destinationPath).LastWriteTime
+                Write-Host $_.FullName
+                Write-Host "This File exists in both folder, But the content may be vary. Copy to" $Mirror "or not?"
+                Copy-Item -Path $_.FullName -Destination $destinationPath -Confirm
+                if ($?) {
+                    $Copy_Counting += 1
+                    Add-Content -path $Push_Pull_Logs -Value "$Copy_Counting - File modify: $destinationPath"
+                }
+            }
+        } else {
+            # 目标文件不存在，直接复制
+            Copy-Item -Path $_.FullName -Destination $destinationPath
             if ($?) {
                 $Copy_Counting += 1
-                Add-Content -path $Push_Pull_Logs -Value "$Copy_Counting - File modify: $destinationPath"
+                Add-Content -path $Push_Pull_Logs -Value "$Copy_Counting - File create: $destinationPath"
             }
+            Write-Host "$destinationPath"
         }
-    } else {
-        # 目标文件不存在，直接复制
-        Copy-Item -Path $_.FullName -Destination $destinationPath
-        if ($?) {
-            $Copy_Counting += 1
-            Add-Content -path $Push_Pull_Logs -Value "$Copy_Counting - File create: $destinationPath"
-        }
-        Write-Host "$destinationPath"
     }
 }
 
