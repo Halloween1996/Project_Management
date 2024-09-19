@@ -1,8 +1,9 @@
 # Ignore all logs
-\logs
+/logs
 logs*
 *.log
-# Ignore any Configuation files and exe files.
+# Ignore all Configuation files and unrelevant files and directoris.
+/P*
 config.*
 *.exe
 *.ini

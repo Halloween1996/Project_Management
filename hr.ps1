@@ -184,10 +184,13 @@ Do {
         if ($newPath) {
             $Global:pj = $newPath
             $pj = $newPath
-            $daProfile = "$Global:pj\Folder_Profile.md"
-            if (-not (Test-Path $daProfile)) {
-                New-Item -Path $daProfile -ItemType File
-                (Get-Item $daProfile).Attributes = "Hidden"
+            Set-Location -Path $newPath
+            if ($newPath.StartsWith($Project_Location)) {
+                $daProfile = "$Global:pj\Folder_Profile.md"
+                if (-not (Test-Path $daProfile)) {
+                    New-Item -Path $daProfile -ItemType File
+                    (Get-Item $daProfile).Attributes = "Hidden"
+                }
             }
             Write-Host "Project set as $Global:pj"
             Write-Host "Profile set as $daProfile"
@@ -243,6 +246,7 @@ Do {
         $Global:pj = Resolve-Path -Path $User_input
         $pj = Resolve-Path -Path $User_Input
         Write-Host "Now, The Project is $Global:pj"
+        Set-Location -Path $Global:pj
         Get-ChildItem $pj
         Continue
     }
