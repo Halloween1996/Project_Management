@@ -7,6 +7,7 @@ $searching_Folder_List = "$Profile_Location\Searching_Variable_List.md"
 # 初始化变量
 $Today_Month = (Get-Date -Format "yyyy-MM")
 $Today_Note = "$Diary_Location\$Today_Month.md"
+$daProfile = $Today_Note
 $Dir_Profile = $Today_Note
 $pj = $Project_Location
 $Global:daProfile = $null
@@ -101,6 +102,12 @@ $dayOfYear = Get-Date -UFormat "%j"
 Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") ", The" $(get-date -uformat %V) "th week"
 Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
 Read-LastLines -filePath $Today_Note -lines 10
+# 如果当前目录存在folder_profile.md, 则读取为daProfile.
+if (Test-Path -Path .\Folder_Profile.md -PathType Leaf) {
+	$daProfile = ".\Folder_Profile.md"
+	Read-LastLines -filePath $daProfile -lines 10
+	Write-host "It is under the Project folder, so loading those notes from this folder."
+}
 Do {
     Write-Host ""
     $User_input = Read-Host "$(get-date -format "ddd h:mm tt")"
@@ -119,29 +126,6 @@ Do {
     }
 
     # 特定动作
-    if ($User_input -eq ";;") {
-        if ($holding_Profile) {
-            $daProfile = $holding_Profile
-            Clear-Variable -Name holding_Profile
-            Write-Host "Swap back to" $daProfile
-            Continue
-        }elseif ($daProfile -like "*\Folder_Profile.md") {
-            $daProfile = $Dir_Profile
-        } else {
-            $Dir_Profile = $daProfile
-            $daProfile = "$pj\Folder_Profile.md"
-        }
-        Write-Host "Now the Profile is $daProfile"
-        Continue
-    }
-    if ($User_input -eq ";;;") {
-        if ("$daProfile" -ne "$Today_Note") {
-            $holding_Profile=$daProfile
-            $daProfile = $Today_Note
-            Write-Host "Profile has to be Withdrawed."
-        }
-        Continue
-    }
     if ($User_input -eq "") {
 		Clear-Host
         $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
@@ -176,6 +160,7 @@ Do {
             $Dir_Profile = $daProfile
             $daProfile = $newProfile
             Write-Host "Profile set as $daProfile"
+            Read-LastLines -filePath $daProfile -lines 10
         }
         Continue
     } elseif ($User_input.StartsWith('\')) {
@@ -194,6 +179,7 @@ Do {
             }
             Write-Host "Project set as $Global:pj"
             Write-Host "Profile set as $daProfile"
+            Read-LastLines -filePath $daProfile -lines 10
         } else {
             Write-Host "----------------------------------------------"
             Write-Host "under $pj :"
@@ -219,6 +205,27 @@ Do {
         if ($newPath) {
             Start-Process $newPath
         }
+        Continue
+    } elseif ($User_input -eq ";;;") {
+        if ("$daProfile" -ne "$Today_Note") {
+            $holding_Profile=$daProfile
+            $daProfile = $Today_Note
+            Write-Host "Profile has to be Withdrawed."
+        }
+        Continue
+    } elseif ($User_input -eq ";;") {
+        if ($holding_Profile) {
+            $daProfile = $holding_Profile
+            Clear-Variable -Name holding_Profile
+            Write-Host "Swap back to" $daProfile
+            Continue
+        }elseif ($daProfile -like "*\Folder_Profile.md") {
+            $daProfile = $Dir_Profile
+        } else {
+            $Dir_Profile = $daProfile
+            $daProfile = "$pj\Folder_Profile.md"
+        }
+        Write-Host "Now the Profile is $daProfile"
         Continue
     }
 
@@ -253,7 +260,7 @@ Do {
 
     # 记录用户输入
     Add-Content -Path $Today_Note -Value "$User_Submitted_Time : $User_input"
-    if ($daProfile) {
+    if ($daProfile -ne $Today_Note) {
         Add-Content -Path $daProfile -Value "$User_Submitted_Time : $User_input"
     }
 } Until ($User_input -eq "wq")
