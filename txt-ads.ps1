@@ -1,5 +1,6 @@
 param (
-    [string]$filePath
+    [string]$filePath,
+    [switch]$paperfill
 )
 
 if (!filePath) {

@@ -5,7 +5,7 @@ if (-Not $Profile_Location) {
 $websites_List = "$Profile_Location\Websites.md"
 $searching_Folder_List = "$Profile_Location\Searching_Variable_List.md"
 # 初始化变量
-$Today_Month = (Get-Date -Format "yyyy-MM")
+$Today_Month = (Get-Date -Format "yyyy")
 $Today_Note = "$Diary_Location\$Today_Month.md"
 $daProfile = $Today_Note
 $Dir_Profile = $Today_Note
@@ -85,6 +85,7 @@ Function Switch-Keywords {
         "ii" = "start-Process"
         "cd" = "Set-Location"
         "cat" = "Get-Content"
+        "pwd" = "Write-host project path: $pj`nWrite-host Cureent path: $pwd`nWrite-Host Profile: $daProfile"
         "cls" = "Clear-Host ; Set-variable -name pj -value $Project_Location"
     }
 

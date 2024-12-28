@@ -4,7 +4,7 @@ param (
 	[string]$Push_Pull_Logs = "C:\testing\Moving_History.md",
     [int]$days_away=30
 )
-# 请确保变量$Mirror的路径与实际的文件路径每个字符都是一致的. 不要实际的文件大写路径是大写, 而这里写的路径是小写. 会导致脚本无法复制.
+# 请确保变量$Mirror的路径与实际的文件路径每个字符都是一致的. 不要实际的路径是大写, 而这里写的路径是小写. 会导致脚本无法复制.
 
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression

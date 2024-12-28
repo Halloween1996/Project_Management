@@ -87,8 +87,7 @@ $filesToProcess | ForEach-Object {
                 Write-Host "-----------------------------------------------------"
                 Write-Host "The one in" $Source ", its last modified:" $($_.LastWriteTime)
                 Write-Host "The one in" $Mirror ", its last modified:" $(Get-Item $destinationPath).LastWriteTime
-                Write-Host $_.FullName
-                Write-Host "This File exists in both folder, But the content may be vary. Copy to" $Mirror "or not?"
+                Write-Host "-----------------------------------------------------"
                 Copy-Item -Path $_.FullName -Destination $destinationPath -Confirm
                 if ($?) {
                     $Copy_Counting += 1
