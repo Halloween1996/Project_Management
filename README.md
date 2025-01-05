@@ -19,7 +19,7 @@
 2. 普通, 进入待办事项, 有序处理.
 3. 困难, 记录在相关的项目推进日志里面, 然后等到某个时刻, 慢慢进行肢解成一条条目的步骤都明确的待办事项, 再有序处理.
 
-![行动力与执行四要素.png](https://github.com/Halloween1996/Project_Management/blob/27053a25cd6fc941eb2296aa816b1c7dba3e0d3c/IMG/%E8%A1%8C%E5%8A%A8%E5%8A%9B%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%9B%9B%E8%A6%81%E7%B4%A0.png)
+![行动力与执行四要素.png](https://github.com/Halloween1996/Project_Management/blob/f5726f6694e4c3efe5fc3ffcb0f59f16fe512c21/IMG/%E8%A1%8C%E5%8A%A8%E5%8A%9B%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%9B%9B%E8%A6%81%E7%B4%A0.png)
 
 ### 最后, 对已完成的项目进行归档 (也就意味着相关的任务已经完成, 相关的文件可以告一段路, 或者删除处理).
 
@@ -28,7 +28,7 @@
 ## 本项目的现况
 
 如图所示, 现在基本上让 hr.ps1 接管一切了. 
-![](https://github.com/Halloween1996/Project_Management/blob/751e04e49f34fb2cbf76871e17ac07f2415259f9/IMG/2024_9%E6%9C%88_PJM%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0%E8%B7%AF%E7%BA%BF.png)
+![](https://github.com/Halloween1996/Project_Management/blob/f5726f6694e4c3efe5fc3ffcb0f59f16fe512c21/IMG/%E5%8C%BA%E5%9F%9F%E8%AE%A1%E5%88%92-3.0_hr%E8%84%9A%E6%9C%AC%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0%E8%B7%AF%E7%BA%BF%E5%9B%BE.png)
 
 偶尔在几个项目目录里加个 sort.txt , 然后让 a.ps1 按 sort.txt 分类一下.
 
