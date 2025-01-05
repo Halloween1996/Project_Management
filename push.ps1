@@ -2,19 +2,15 @@ param (
     [string]$Source = "C:\My\Business",
     [string]$Mirror = "C:\testing",
 	[string]$Push_Pull_Logs = "C:\testing\Moving_History.md",
-    [int]$days_away=30
+    [int]$days_away=30,
+    [switch]$Reverse
 )
-
-# "区域计划" 联动变量
-if (-Not $Profile_Location) {
-	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
-}
 
 # 定义默认值
 $Include_Keywords = @("ST-1", "ST-4", "ST-14", "HR Tax", "Sale")
 $Exclude_Keywords = @("Copy", "\Achieved", "Config")
 $Copy_Counting = 0
-[int]$n = 0
+
 # 检查是否存在配置文件
 $configFile = ".\Copy_Config.txt"
 if (Test-Path $configFile) {
@@ -30,15 +26,21 @@ if (Test-Path $configFile) {
         }
     }
 }
-
+if ($Reverse) { 
+    $Reverse_Path = $Mirror
+    $Mirror = $Source
+    $Source = $Reverse_Path
+}
 # 待调用函数 - 计算文件的哈希值
 function Get-FileHashValue($filePath) {
     return Get-FileHash -Path $filePath -Algorithm SHA256 | Select-Object -ExpandProperty Hash
 }
 
-Write-Host $Source "-- Copy File to -->" $mirror
-Write-Host "Only Copy File which File Name contains any of the following include keywords: $($Include_Keywords -join ', ')"
-Write-Host "Exclude File which File Name contains any of the following exclude keywords: $($Exclude_Keywords -join ', ')"
+Write-Host $Source "-- Copy File(s) to -->" $mirror
+Write-Host "-----------------------------------------------------"
+Write-Host "Only Copying File(s) which modify date are within" $days_away "days away from today,"
+Write-Host "also the Name contain one of following keyword(s): $($Include_Keywords -join ', ')"
+Write-Host "File(s) with those keyword(s) will be Exclude: $($Exclude_Keywords -join ', ')"
 Pause
 
 # 遍历源文件夹中的所有文件
@@ -108,5 +110,5 @@ $filesToProcess | ForEach-Object {
 
 # 添加当前日期、时间和总复制数到日志文件
 $currentDateTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-Add-Content -path $Push_Pull_Logs -Value "Date: $currentDateTime, Total Copy: $Copy_Counting"
+Add-Content -path $Push_Pull_Logs -Value "Date: $currentDateTime, Total Copy: $Copy_Counting; File(s) are modified within $days_away "days away from today"
 Write-Host "Total Copy: $Copy_Counting"

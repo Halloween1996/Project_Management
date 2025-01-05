@@ -103,9 +103,9 @@ $dayOfYear = Get-Date -UFormat "%j"
 Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") ", The" $(get-date -uformat %V) "th week"
 Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
 Read-LastLines -filePath $Today_Note -lines 10
-# 如果当前目录存在folder_profile.md, 则读取为daProfile.
-if (Test-Path -Path .\Folder_Profile.md -PathType Leaf) {
-	$daProfile = ".\Folder_Profile.md"
+# 如果当前目录存在.folder_profile.md, 则读取为daProfile.
+if (Test-Path -Path .\.Folder_Profile.md -PathType Leaf) {
+	$daProfile = ".\.Folder_Profile.md"
 	Read-LastLines -filePath $daProfile -lines 10
 	Write-host "It is under the Project folder, so loading those notes from this folder."
 }
@@ -172,7 +172,7 @@ Do {
             $pj = $newPath
             Set-Location -Path $newPath
             if ($newPath.StartsWith($Project_Location)) {
-                $daProfile = "$Global:pj\Folder_Profile.md"
+                $daProfile = "$Global:pj\.Folder_Profile.md"
                 if (-not (Test-Path $daProfile)) {
                     New-Item -Path $daProfile -ItemType File
                     (Get-Item $daProfile).Attributes = "Hidden"
@@ -220,11 +220,11 @@ Do {
             Clear-Variable -Name holding_Profile
             Write-Host "Swap back to" $daProfile
             Continue
-        }elseif ($daProfile -like "*\Folder_Profile.md") {
+        }elseif ($daProfile -like "*\.Folder_Profile.md") {
             $daProfile = $Dir_Profile
         } else {
             $Dir_Profile = $daProfile
-            $daProfile = "$pj\Folder_Profile.md"
+            $daProfile = "$pj\.Folder_Profile.md"
         }
         Write-Host "Now the Profile is $daProfile"
         Continue
