@@ -110,5 +110,5 @@ $filesToProcess | ForEach-Object {
 
 # 添加当前日期、时间和总复制数到日志文件
 $currentDateTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-Add-Content -path $Push_Pull_Logs -Value "Date: $currentDateTime, Total Copy: $Copy_Counting; File(s) are modified within $days_away "days away from today"
+Add-Content -path $Push_Pull_Logs -Value "Date: $currentDateTime, Total Copy: $Copy_Counting; File(s) are modified within $days_away days away from today"
 Write-Host "Total Copy: $Copy_Counting"

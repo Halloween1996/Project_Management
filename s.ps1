@@ -1,7 +1,7 @@
 # 读取配置文件内容
 Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 $WebSites_File = "$Quick_Luanching_Dictionary"
-$Searching_Variable_List_File = "$Profile_Location\Searching_Variable_List1.md"
+$Searching_Variable_List_File = "$Profile_Location\Searching_Variable_List.md"
 
 # 读取WebSites.md文件内容
 $WebSites_Content = Get-Content $WebSites_File

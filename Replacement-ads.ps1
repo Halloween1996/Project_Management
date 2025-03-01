@@ -2,7 +2,6 @@ param (
     [string]$filePath,
     [switch]$paperfill
 )
-$In_Translation = $False
 
 # 读取文件内容
 $content = Get-Content -Path $filePath -Raw
@@ -20,10 +19,6 @@ foreach ($variable in $variables) {
     
     # 根据变量名进行自动计算或让用户输入
     switch ($variableName) {
-        "Translation" {
-            $In_Translation = $true
-            $replacements[$variable] ="---------"
-        }
         "Last_Month" {
             $Last_Month = (Get-Date).AddMonths(-1).ToString("MMMM")
             $replacements[$variable] = $Last_Month

@@ -85,7 +85,6 @@ Function Switch-Keywords {
         "ii" = "start-Process"
         "cd" = "Set-Location"
         "cat" = "Get-Content"
-        "pwd" = "Write-host project path: $pj`nWrite-host Cureent path: $pwd`nWrite-Host Profile: $daProfile"
         "cls" = "Clear-Host ; Set-variable -name pj -value $Project_Location"
     }
 
@@ -99,10 +98,22 @@ Function Switch-Keywords {
 }
 
 # 主程序
-$dayOfYear = Get-Date -UFormat "%j"
-Write-Host "Hi, Today is" (Get-Date -Format "yyyy-MM-dd dddd") ", The" $(get-date -uformat %V) "th week"
-Write-Host "Today is the year of $dayOfYear, This year has " $(365-$dayOfYear) "days lefts."
+$today = Get-Date
+$dayOfYear = $today.DayOfYear
+$isLeapYear = [DateTime]::IsLeapYear($today.Year)
+$totalDaysInYear = if ($isLeapYear) { 366 } else { 365 }
+$remainingDays = $totalDaysInYear - $dayOfYear
+$weekOfYear = [System.Globalization.CultureInfo]::CurrentCulture.Calendar.GetWeekOfYear($today, [System.Globalization.CalendarWeekRule]::FirstFourDayWeek, [DayOfWeek]::Sunday)
+$lastDayOfYear = Get-Date -Year $today.Year -Month 12 -Day 31
+$totalWeeksInYear = [System.Globalization.CultureInfo]::CurrentCulture.Calendar.GetWeekOfYear($lastDayOfYear, [System.Globalization.CalendarWeekRule]::FirstFourDayWeek, [DayOfWeek]::Sunday)
+$Yearprogress = [math]::Round(($dayOfYear / $totalDaysInYear) * 100, 2)
+$progressBarLength = 50
+$YearprogressBar = "=" * [math]::Round(($dayOfYear / $totalDaysInYear) * $progressBarLength)
 Read-LastLines -filePath $Today_Note -lines 10
+Write-Host "Hi, Today is" ($today.ToString("yyyy-MM-dd dddd")) ", the" $weekOfYear "th week out of" ($totalWeeksInYear) "weeks"
+Write-Host "Today is the $dayOfYear th day(s) of the year; there are $remainingDays days left."
+Write-Host "Year Progress: [$YearprogressBar$([string]::new(" ", $progressBarLength - $progressBar.Length))] $Yearprogress% complete"
+
 # 如果当前目录存在.folder_profile.md, 则读取为daProfile.
 if (Test-Path -Path .\.Folder_Profile.md -PathType Leaf) {
 	$daProfile = ".\.Folder_Profile.md"
@@ -132,6 +143,8 @@ Do {
         $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
         Write-host " $fileToRead has written:"
 		Read-LastLines -filePath $fileToRead -lines 10
+        $pj
+        $daProfile
 		Continue
 	} elseif ($User_input -match "^\d+$") {
         $linesToRead = [int]$User_input
@@ -230,32 +243,44 @@ Do {
         Continue
     }
 
-    # 处理双引号开头的输入
+    # ----------------以下代码涉及文件移动的核心逻辑-----------------
+    if ($User_input.StartsWith("@")) {
+        $User_input = $User_input.Substring(1)
+        $User_Input = $User_input.Trim('"')
+        # 判断是否为文件路径
+        if (Test-Path -LiteralPath $User_input -PathType Leaf) {
+            $fileExtension = [System.IO.Path]::GetExtension($User_input)
+            if ($fileExtension -eq ".txt" -or $fileExtension -eq ".md") {
+                $daProfile = $User_Input
+                Write-Host "Now the Profile is $daProfile"
+                Continue
+            }
+        }
+        # 判断是否为文件夹路径
+        if (Test-Path -LiteralPath $User_input -PathType Container) {
+            $Global:pj = Resolve-Path -Path $User_input
+            $pj = Resolve-Path -Path $User_Input
+            Write-Host "Now, The Project is $Global:pj"
+            Set-Location -Path $Global:pj
+            Get-ChildItem $pj
+            Continue
+        }
+    }
+
+    # 如果只输入路径, 那么首先处理双引号开头的输入, 再移动处理后的结果到Project之中.
     if ($User_input.StartsWith('"')) {
         $User_input = $User_input.Trim('"')
     }
-
-    # 判断是否为文件路径
-    if (Test-Path -LiteralPath $User_input -PathType Leaf) {
+    if (Test-Path -LiteralPath $User_input) {
         if ($Global:pj) {
-			$fileName = [System.IO.Path]::GetFileName($User_input)
-			$File_Size = Format-FileSize((Get-Item $User_Input).Length)
+            $fileName = [System.IO.Path]::GetFileName($User_input)
+            $File_Size = Format-FileSize((Get-Item $User_Input).Length)
             Move-Item -LiteralPath $User_input -Destination $Global:pj
             Add-Content -Path $Today_Note -Value "$User_Submitted_Time : Moved file **$fileName `($File_Size`)** to $Global:pj"
             if ($daProfile) {
                 Add-Content -Path $daProfile -Value "$User_Submitted_Time : Moved file **$fileName `($File_Size`)** to $Global:pj"
             }
         }
-        Continue
-    }
-
-    # 判断是否为文件夹路径
-    if (Test-Path -LiteralPath $User_input -PathType Container) {
-        $Global:pj = Resolve-Path -Path $User_input
-        $pj = Resolve-Path -Path $User_Input
-        Write-Host "Now, The Project is $Global:pj"
-        Set-Location -Path $Global:pj
-        Get-ChildItem $pj
         Continue
     }
 
