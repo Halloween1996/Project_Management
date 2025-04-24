@@ -1,10 +1,35 @@
-# ³õÊ¼»¯ÎÄµµÎ»ÖÃ±äÁ¿
+param(
+    [String]$textfile,
+    [switch]$Debug
+)
+
+if ($Debug) {
+    Write-Host "è¿è¡Œè°ƒè¯•æ¨¡å¼ (--debug)"
+    
+    # åŠ è½½é…ç½®æ–‡ä»¶
+    if (-Not $Profile_Location) {
+        Get-Content "$PSScriptRoot\project_variable.ini" | Invoke-Expression
+    }
+
+    # æå–å½“å‰ä¼šè¯ä¸­å®šä¹‰çš„æ‰€æœ‰å˜é‡
+    $variables = Get-Variable | Select-Object Name, Value
+
+    # è¾“å‡ºå˜é‡
+    Write-Host "ä»¥ä¸‹æ˜¯è„šæœ¬ä¸­ä½¿ç”¨åˆ°çš„å˜é‡åŠå…¶å€¼ï¼š"
+    foreach ($var in $variables) {
+        Write-Host "Variable: $($var.Name) = $($var.Value)"
+    }
+
+    # åœæ­¢æ‰§è¡Œåç»­å†…å®¹ï¼Œæˆ–è€…æ ¹æ®éœ€æ±‚ç»§ç»­æ‰§è¡Œ
+    return
+}
+
+# Initialization Variable.
 if (-Not $Profile_Location) {
 	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 }
-$websites_List = "$Profile_Location\Websites.md"
-$searching_Folder_List = "$Profile_Location\Searching_Variable_List.md"
-# ³õÊ¼»¯±äÁ¿
+
+# åˆå§‹åŒ–å˜é‡
 $Today_Month = (Get-Date -Format "yyyy")
 $Today_Note = "$Diary_Location\$Today_Month.md"
 $daProfile = $Today_Note
@@ -12,7 +37,18 @@ $Dir_Profile = $Today_Note
 $pj = $Project_Location
 $Global:daProfile = $null
 
-# ´ıµ÷ÓÃº¯Êı
+if (Test-Path -Path .\.Folder_Profile.md -PathType Leaf) {
+	$daProfile = ".\.Folder_Profile.md"
+	Write-host "It is under the Project folder, so loading those notes from this folder."
+}
+if ($textfile) {
+    if (Test-Path -Path $textfile -PathType Leaf) {
+        $daProfile = "$textfile"
+        Write-host "Loading $textfile"
+    }
+}
+
+# å¾…è°ƒç”¨å‡½æ•°
 Function Read-LastLines {
     Param ($filePath, $lines = 20)
     [int]$n = 0
@@ -97,7 +133,7 @@ Function Switch-Keywords {
     Return @($Explain, $Has_Explain)
 }
 
-# Ö÷³ÌĞò
+# Main Body Code
 $today = Get-Date
 $dayOfYear = $today.DayOfYear
 $isLeapYear = [DateTime]::IsLeapYear($today.Year)
@@ -109,35 +145,29 @@ $totalWeeksInYear = [System.Globalization.CultureInfo]::CurrentCulture.Calendar.
 $Yearprogress = [math]::Round(($dayOfYear / $totalDaysInYear) * 100, 2)
 $progressBarLength = 50
 $YearprogressBar = "=" * [math]::Round(($dayOfYear / $totalDaysInYear) * $progressBarLength)
-Read-LastLines -filePath $Today_Note -lines 10
+Read-LastLines -filePath $daProfile -lines 5
 Write-Host "Hi, Today is" ($today.ToString("yyyy-MM-dd dddd")) ", the" $weekOfYear "th week out of" ($totalWeeksInYear) "weeks"
 Write-Host "Today is the $dayOfYear th day(s) of the year; there are $remainingDays days left."
 Write-Host "Year Progress: [$YearprogressBar$([string]::new(" ", $progressBarLength - $progressBar.Length))] $Yearprogress% complete"
 
-# Èç¹ûµ±Ç°Ä¿Â¼´æÔÚ.folder_profile.md, Ôò¶ÁÈ¡ÎªdaProfile.
-if (Test-Path -Path .\.Folder_Profile.md -PathType Leaf) {
-	$daProfile = ".\.Folder_Profile.md"
-	Read-LastLines -filePath $daProfile -lines 10
-	Write-host "It is under the Project folder, so loading those notes from this folder."
-}
 Do {
     Write-Host ""
     $User_input = Read-Host "$(get-date -format "ddd h:mm tt")"
     $User_Submitted_Time = get-date -format "yyyy-MM-dd dddd HH:mm:ss"
 
-    # Ìæ»»¹Ø¼ü´Ê
+    # æ›¿æ¢å…³é”®è¯
     $result = Switch-Keywords -Explain $User_input
     $expandedInput = $result[0]
     $Has_Explain = $result[1]
 
-    # Èç¹û½øĞĞÁË×Ö·ûÌæ»»£¬µ÷ÓÃInvoke-Expression²¢Ìø¹ıÊ£Óà²¿·Ö
+    # å¦‚æœè¿›è¡Œäº†å­—ç¬¦æ›¿æ¢ï¼Œè°ƒç”¨Invoke-Expressionå¹¶è·³è¿‡å‰©ä½™éƒ¨åˆ†
     if ($Has_Explain) {
         Invoke-Expression $expandedInput
         $Has_Explain = $false
         Continue
     }
 
-    # ÌØ¶¨¶¯×÷
+    # ç‰¹å®šåŠ¨ä½œ
     if ($User_input -eq "") {
 		Clear-Host
         $fileToRead = if ($daProfile) { $daProfile } else { $Today_Note }
@@ -208,7 +238,7 @@ Do {
         foreach ($folder in $folders) {
             $matchingFiles += Get-ChildItem -Path $folder -Filter "*$pattern*"
         }
-        # ËÑË÷ÍøÖ·
+        # Searching Website
         Get-Content $websites_List | ForEach-Object {
             if ($_ -match $pattern) {
                 $n++
@@ -243,11 +273,11 @@ Do {
         Continue
     }
 
-    # ----------------ÒÔÏÂ´úÂëÉæ¼°ÎÄ¼şÒÆ¶¯µÄºËĞÄÂß¼­-----------------
+    # ----------------ä»¥ä¸‹ä»£ç æ¶‰åŠæ–‡ä»¶ç§»åŠ¨çš„æ ¸å¿ƒé€»è¾‘-----------------
     if ($User_input.StartsWith("@")) {
         $User_input = $User_input.Substring(1)
         $User_Input = $User_input.Trim('"')
-        # ÅĞ¶ÏÊÇ·ñÎªÎÄ¼şÂ·¾¶
+        # åˆ¤æ–­æ˜¯å¦ä¸ºæ–‡ä»¶è·¯å¾„
         if (Test-Path -LiteralPath $User_input -PathType Leaf) {
             $fileExtension = [System.IO.Path]::GetExtension($User_input)
             if ($fileExtension -eq ".txt" -or $fileExtension -eq ".md") {
@@ -256,7 +286,7 @@ Do {
                 Continue
             }
         }
-        # ÅĞ¶ÏÊÇ·ñÎªÎÄ¼ş¼ĞÂ·¾¶
+        # åˆ¤æ–­æ˜¯å¦ä¸ºæ–‡ä»¶å¤¹è·¯å¾„
         if (Test-Path -LiteralPath $User_input -PathType Container) {
             $Global:pj = Resolve-Path -Path $User_input
             $pj = Resolve-Path -Path $User_Input
@@ -267,7 +297,7 @@ Do {
         }
     }
 
-    # Èç¹ûÖ»ÊäÈëÂ·¾¶, ÄÇÃ´Ê×ÏÈ´¦ÀíË«ÒıºÅ¿ªÍ·µÄÊäÈë, ÔÙÒÆ¶¯´¦ÀíºóµÄ½á¹ûµ½ProjectÖ®ÖĞ.
+    # å¦‚æœåªè¾“å…¥è·¯å¾„, é‚£ä¹ˆé¦–å…ˆå¤„ç†åŒå¼•å·å¼€å¤´çš„è¾“å…¥, å†ç§»åŠ¨å¤„ç†åçš„ç»“æœåˆ°Projectä¹‹ä¸­.
     if ($User_input.StartsWith('"')) {
         $User_input = $User_input.Trim('"')
     }
@@ -284,7 +314,7 @@ Do {
         Continue
     }
 
-    # ¼ÇÂ¼ÓÃ»§ÊäÈë
+    # è®°å½•ç”¨æˆ·è¾“å…¥
     Add-Content -Path $Today_Note -Value "$User_Submitted_Time : $User_input"
     if ($daProfile -ne $Today_Note) {
         Add-Content -Path $daProfile -Value "$User_Submitted_Time : $User_input"
