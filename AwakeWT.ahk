@@ -1,7 +1,32 @@
-﻿#Requires AutoHotkey v2.0
-global xpos1 := 0, ypos1 := 0 ; 初始化全局变量 xpos1 和 ypos1
-global xpos2 := 0, ypos2 := 0 ; 初始化全局变量 xpos2 和 ypos2
-global xValue := 0, yValue := 0 ; 初始化全局变量 xValue 和 yValue
+#Requires AutoHotkey v2.0
+CoordMode "Mouse", "Screen"
+
+~*RButton:: {
+    MouseGetPos &startX, &startY  ; 记录按住右键时的初始坐标
+    while GetKeyState("RButton", "P") {  ; 按住右键时监测鼠标移动
+        Sleep 100
+        MouseGetPos &currentX, &currentY
+        moveX := currentX - startX
+        moveY := currentY - startY
+
+        if (startY <= 50) {
+            if (moveY > 80) {  ; 向下滑动超过 x 像素 → 打开开始菜单
+                Send("{LWin}")  
+                break
+            } else if (moveY > 50) {  ; 向下滑动超过 x 像素 → 任务切换
+                Send("#{Tab}")
+                break
+            } else if (moveX > 100) {  ; 向右拖动超过 x 像素 → Alt + Tab
+                Send("!{Tab}")  
+                break
+            } else if (moveX < -100) {  ; 向左拖动超过 x 像素 → Alt + Shift + Tab
+                Send("!+{Tab}")  
+                break
+            }
+        }
+    }
+}
+
 +Space::
 {
     activePID := WinGetPID("A") ; 获取当前窗口的进程 ID
@@ -25,6 +50,10 @@ global xValue := 0, yValue := 0 ; 初始化全局变量 xValue 和 yValue
 }
 CapsLock::return
 
+#HotIf GetKeyState("RButton", "P")
+WheelUp:: Send('{Volume_Up 2}')
+WheelDown:: Send('{Volume_Down 2}')
+XButton2::Send('{Lwin}')
 #HotIf GetKeyState("CapsLock", "P")
 {
     q::Send("{Click}")
