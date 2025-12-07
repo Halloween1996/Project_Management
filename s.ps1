@@ -1,14 +1,8 @@
 # 读取配置文件内容
-Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
-$WebSites_File = "$Quick_Luanching_Dictionary"
-$Searching_Variable_List_File = "$Profile_Location\Searching_Variable_List.md"
-
+Get-Content $PSScriptRoot\Unified_project_variable.ini|Invoke-Expression
 # 读取WebSites.md文件内容
-$WebSites_Content = Get-Content $WebSites_File
-
-# 读取Searching_Variable_List.md文件内容
-$Folder_Locations = Get-Content $Searching_Variable_List_File
-
+$WebSites_Content = Get-Content $Websites_List
+$Folder_Locations = Get-Content $Searching_Folder_List
 Function Search-File ($param) {
     $n = 0
     $Candidates = @()
@@ -26,7 +20,7 @@ Function Search-File ($param) {
 
     # 搜索文件夹中的文件
     foreach ($Folder_Location in $Folder_Locations) {
-        $ddc = Get-ChildItem "$Folder_Location\*$param*" -File
+        $ddc = Get-ChildItem "$Folder_Location\*$param*"
         foreach ($file in $ddc) {
             $shortPath = $file.FullName.Replace($Folder_Location, '').TrimStart('\')
             $Candidates += [PSCustomObject]@{ Index = ++$n; Path = $file.FullName; Display = "$shortPath - $($file.Name)" }
@@ -54,7 +48,19 @@ Function Search-File ($param) {
 If ($args) {
 	Search-File $args
 } else {
-	$User_input = Read-Host
+    Write-Host "Following Folder(s) are in the searching list:"
+    $Folder_Locations
+    Write-Host "You may type Edit for Editing, Open for open Project Location, or just type s + keyword for search and open."
+	$User_input = Read-Host "Command"
+    if ($User_input -ieq "Edit") {
+        Invoke-Item $Searching_Folder_List
+        Invoke-Item $Websites_List
+        Exit
+    }
+    if ($User_input -ieq "Open") {
+        Invoke-Item $Project_Location
+        Exit
+    }
     if ($User_input.StartsWith('s ')) {
         $ToSearch = $User_input.substring(2)
         Write-Host "Searching $ToSearch by File..."

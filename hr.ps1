@@ -3,10 +3,15 @@ param(
     [switch]$Debug
 )
 
+
+# Initialization Variable.
+if (-Not $Profile_Location) {
+	Get-Content $PSScriptRoot\Unified_project_variable.ini|Invoke-Expression
+}
+
 if ($Debug) {
     Write-Host "运行调试模式 (--debug)"
     
-    # 加载配置文件
     if (-Not $Profile_Location) {
         Get-Content "$PSScriptRoot\project_variable.ini" | Invoke-Expression
     }
@@ -19,21 +24,13 @@ if ($Debug) {
     foreach ($var in $variables) {
         Write-Host "Variable: $($var.Name) = $($var.Value)"
     }
-
-    # 停止执行后续内容，或者根据需求继续执行
     return
-}
-
-# Initialization Variable.
-if (-Not $Profile_Location) {
-	Get-Content $PSScriptRoot\project_variable.ini|Invoke-Expression
 }
 
 # 初始化变量
 $Today_Month = (Get-Date -Format "yyyy")
 $Today_Note = "$Diary_Location\$Today_Month.md"
 $daProfile = $Today_Note
-$Dir_Profile = $Today_Note
 $pj = $Project_Location
 $Global:daProfile = $null
 
@@ -175,6 +172,7 @@ Do {
 		Read-LastLines -filePath $fileToRead -lines 10
         $pj
         $daProfile
+        $holding_Profile
 		Continue
 	} elseif ($User_input -match "^\d+$") {
         $linesToRead = [int]$User_input
@@ -198,27 +196,44 @@ Do {
         Invoke-Expression $command
         Continue
     } elseif ($User_input.StartsWith('\\')) {
-        $Profile_pattern = $User_input.Substring(2)
-        $newProfile = Search-Result -searchPath $Profile_Location -pattern $Profile_pattern
-        if ($newProfile) {
-            $Dir_Profile = $daProfile
-            $daProfile = $newProfile
-            Write-Host "Profile set as $daProfile"
-            Read-LastLines -filePath $daProfile -lines 10
-        }
+        # 定位到 Project 的逻辑
+        if ($User_input-eq "\\\") {
+            $New_Project_Name = Read-Host "Please type the new project Name"
+            mkdir "$Project_Location\$New_Project_Name"
+            $pj = "$Project_Location\$New_Project_Name"
+            $Global:pj = Resolve-Path -Path "$Project_Location\$New_Project_Name"
+            Write-Host "Now, The Project is $Global:pj, swtich current profile to the new Project?"
+            New-Item -Path "$Global:pj\.Folder_Profile.md" -ItemType File
+            (Get-Item "$Global:pj\.Folder_Profile.md").Attributes = "Hidden"
+            Clear-Variable -Name New_Project_Name
+            $New_Project_Name = Read-Host "(Press Enter to diregard)"
+            if ($New_Project_Name) {
+                $daProfile = "$Global:pj\.Folder_Profile.md"
+                Write-Host "Now the Profile is $daProfile"
+            }
         Continue
-    } elseif ($User_input.StartsWith('\')) {
-        $pattern = $User_input.Substring(1)
+        }
+        if ($User_input.StartsWith('\\\')) {
+            $Project_Pattern = $User_input.Substring(3)
+            $Relocated_Project = Search-Result -searchPath $Project_Location -pattern $Project_Pattern
+            if ($Relocated_Project) {
+                $pj = Resolve-Path -Path $Relocated_Project
+                $Global:pj = Resolve-Path -Path "$Relocated_Project"
+                Write-Host "Now, The Project is $Global:pj"
+            }
+        Continue
+        }
+        $pattern = $User_input.Substring(2)
         $newPath = Search-Result -searchPath $pj -pattern $pattern
         if ($newPath) {
             $Global:pj = $newPath
             $pj = $newPath
             Set-Location -Path $newPath
             if ($newPath.StartsWith($Project_Location)) {
-                $daProfile = "$Global:pj\.Folder_Profile.md"
-                if (-not (Test-Path $daProfile)) {
-                    New-Item -Path $daProfile -ItemType File
-                    (Get-Item $daProfile).Attributes = "Hidden"
+                if (Test-Path "$Global:pj\.Folder_Profile.md") {
+                    $holding_Profile = $daProfile
+                    $daProfile = "$Global:pj\.Folder_Profile.md"
+                    Write-Host "You hare Swapped to project's profile, type ';;' to swap back."
                 }
             }
             Write-Host "Project set as $Global:pj"
@@ -229,6 +244,50 @@ Do {
             Write-Host "under $pj :"
             Write-Host "------------------------"
             Get-ChildItem $pj
+        }
+        Continue
+    } elseif ($User_input.StartsWith(';;')) {
+        # 定位到 Profile 的逻辑
+        if ($User_input -eq ";;") {
+            if ($holding_Profile) {
+                $Temp_Profile = $daProfile
+                $daProfile = $holding_Profile
+                $holding_Profile = $Temp_Profile
+                Write-Host "Swap to" $daProfile
+            } else {
+                $holding_Profile = $daProfile
+                $daProfile = $Today_Note
+                Write-Host "Withdrawed."
+            }
+            Continue
+        }
+        if ($User_input -eq ";;;") {
+            if ($holding_Profile) {
+                Clear-Variable -Name holding_Profile
+                Write-Host "No Profile is on Hold."
+            } else {
+                Write-Host "Please Enter the New Profile Name, a markdown file will be created under profile folder. "
+                Write-Host "you may just press the <Enter>, then Hidden markdown profile will be created under current project."
+                Write-Host "Current project folder: $pj"
+                $New_Profile_Name = Read-Host "Please enter the new profile Name"
+                if ($New_Profile_Name = "") {
+                    New-Item -path "$pj\.Folder_Profile.md" -ItemType File
+                    (Get-Item "$pj\.Folder_Profile.md").Attributes = "Hidden"
+                    $daProfile = "$pj\.Folder_Profile.md"
+                } else {
+                    New-Item -Path "$profile_location\$New_Profile_Name.md" -ItemType File
+                    $daProfile = "$profile_location\$New_Profile_Name.md"
+                }
+            Clear-Variable -Name New_Profile_Name
+            }
+        Continue
+        }
+        $Profile_pattern = $User_input.Substring(2)
+        $Relocated_Profile = Search-Result -searchPath $Profile_Location -pattern $Profile_pattern
+        if ($Relocated_Profile) {
+            $daProfile = $Relocated_Profile
+            Write-Host "Profile set as $daProfile"
+            Read-LastLines -filePath $daProfile -lines 10
         }
         Continue
     } elseif ($User_input.StartsWith('s ')) {
@@ -250,30 +309,9 @@ Do {
             Start-Process $newPath
         }
         Continue
-    } elseif ($User_input -eq ";;;") {
-        if ("$daProfile" -ne "$Today_Note") {
-            $holding_Profile=$daProfile
-            $daProfile = $Today_Note
-            Write-Host "Profile has to be Withdrawed."
-        }
-        Continue
-    } elseif ($User_input -eq ";;") {
-        if ($holding_Profile) {
-            $daProfile = $holding_Profile
-            Clear-Variable -Name holding_Profile
-            Write-Host "Swap back to" $daProfile
-            Continue
-        }elseif ($daProfile -like "*\.Folder_Profile.md") {
-            $daProfile = $Dir_Profile
-        } else {
-            $Dir_Profile = $daProfile
-            $daProfile = "$pj\.Folder_Profile.md"
-        }
-        Write-Host "Now the Profile is $daProfile"
-        Continue
     }
 
-    # ----------------以下代码涉及文件移动的核心逻辑-----------------
+    # 如果是@加路径, 则定位到该文件或文件夹.
     if ($User_input.StartsWith("@")) {
         $User_input = $User_input.Substring(1)
         $User_Input = $User_input.Trim('"')
@@ -301,6 +339,7 @@ Do {
     if ($User_input.StartsWith('"')) {
         $User_input = $User_input.Trim('"')
     }
+    # 以下代码涉及文件移动的核心逻辑
     if (Test-Path -LiteralPath $User_input) {
         if ($Global:pj) {
             $fileName = [System.IO.Path]::GetFileName($User_input)

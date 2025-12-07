@@ -24,7 +24,7 @@ foreach ($variable in $variables) {
             $replacements[$variable] = $Last_Month
         }
         "Month_In_Number" {
-            $replacements[$variable] = (Get-Date).AddMonths(-1).ToString("MM")
+            $replacements[$variable] = (Get-Date).AddMonths(-1).ToString("%M")
         }
         "Today" {
             $replacements[$variable] = Get-Date -Format "MM-dd-yyyy (dddd)"
